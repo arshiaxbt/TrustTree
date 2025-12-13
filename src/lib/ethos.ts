@@ -19,18 +19,14 @@ export interface EthosProfile {
  * 
  * @param profileId - The ID of the profile to fetch.
  */
-export async function getEthosData(profileId: string): Promise<EthosProfile | null> {
+export async function getEthosData(address: string): Promise<EthosProfile | null> {
     try {
-        const baseUrl = 'https://api.ethos.network/api/v2';
-        // Assuming the endpoint for a specific profile follows standard REST conventions
-        // or uses a query parameter. Adjusting to /profile/{id} as a best guess for public data
-        // or /profile?id={id}.
-        // Given the prompt says "calls... /profile", we'll target that.
+        // Based on API v2 documentation patterns
+        const url = `https://api.ethos.network/api/v2/users/by/id/${address}`;
 
-        const url = `${baseUrl}/profile/${profileId}`;
+        // Note: The previous endpoint /profile might have been wrong.
+        // Trying a more standard likelihood or logging response body.
 
-        // In a real app, we might need to proxy this to avoid CORS or add API keys.
-        // For this generic implementation, we use client-side fetch.
         const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -40,19 +36,17 @@ export async function getEthosData(profileId: string): Promise<EthosProfile | nu
         });
 
         if (!response.ok) {
-            console.error('Failed to fetch Ethos data:', response.statusText);
+            console.error('Failed to fetch Ethos data:', response.status, response.statusText);
+            // Attempt fallback to another likely endpoint if first fails?
             return null;
         }
 
         const data = await response.json();
 
-        // Transform API response to our interface if needed.
-        // Assuming the API returns keys matching our interface or we map them.
-        // This is a mock mapping based on typical API responses.
         return {
-            id: data.id || profileId,
+            id: data.profileId || data.username || address,
             score: data.score || 0,
-            vouchCount: data.vouchesCount || data.vouchCount || 0,
+            vouchCount: data.vouchCount || data.vouchesCount || 0,
             linkedAccounts: data.linkedAccounts || [],
         };
     } catch (error) {
