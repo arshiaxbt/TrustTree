@@ -10,14 +10,17 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
     return (
         <PrivyProvider
-            appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ''}
+            appId="cmj4fhb6302yhjm0d7tuhgds4"
             config={{
-                loginMethodsAndOrder: {
-                    primary: ['privy:cm5l76en107pt1lpl2ve2ocfy'], // Specific for "Log in with Ethos"
-                },
+                // Customize Privy's appearance
                 appearance: {
                     theme: 'light',
                     accentColor: '#676FFF',
+                    logo: 'https://developers.ethos.network/logo.png', // Optional: Use Ethos or TrustTree logo
+                },
+                // Create embedded wallets for users who don't have a wallet
+                embeddedWallets: {
+                    createOnLogin: 'users-without-wallets',
                 },
             }}
         >
