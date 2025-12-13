@@ -18,6 +18,10 @@ export function Providers({ children }: ProvidersProps) {
                     accentColor: '#676FFF',
                     logo: 'https://developers.ethos.network/logo.png', // Optional: Use Ethos or TrustTree logo
                 },
+                // Restrict login to only "Log in with Ethos"
+                loginMethodsAndOrder: {
+                    primary: ['privy:cm5l76en107pt1lpl2ve2ocfy'],
+                },
                 // Create embedded wallets for users who don't have a wallet
                 embeddedWallets: {
                     createOnLogin: 'users-without-wallets',

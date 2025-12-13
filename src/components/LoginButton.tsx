@@ -35,7 +35,7 @@ export function LoginButton() {
             onClick={login}
             className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-2 rounded-full font-semibold hover:opacity-90 transition-opacity"
         >
-            Log in
+            Log in with Ethos
         </button>
     );
 }
