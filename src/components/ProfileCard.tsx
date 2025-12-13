@@ -7,46 +7,48 @@ import { useEffect, useState } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-// ... rest of imports
-
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
 interface ProfileCardProps {
-    profile: EthosProfile;
+    initialProfile?: EthosProfile;
 }
 
-export function ProfileCard({ profile }: ProfileCardProps) {
+export function ProfileCard({ initialProfile }: ProfileCardProps) {
     const { authenticated, user } = usePrivy();
-    const [viewerScore, setViewerScore] = useState<number | null>(null);
+    const [profile, setProfile] = useState<EthosProfile | null>(initialProfile || null);
     const [isCopied, setIsCopied] = useState(false);
 
-    // Fetch viewer score when confirmed authenticated and has wallet
-    // Note: Ethos score usually requires a wallet address.
     useEffect(() => {
-        async function fetchViewerScore() {
+        async function fetchUserProfile() {
             if (authenticated && user?.wallet?.address) {
-                // Use wallet address to fetch score
                 const data = await getEthosData(user.wallet.address);
                 if (data) {
-                    setViewerScore(data.score);
+                    setProfile(data);
                 }
             }
         }
 
-        if (authenticated && user?.wallet?.address) {
-            fetchViewerScore();
-        } else {
-            setViewerScore(null);
+        if (authenticated) {
+            fetchUserProfile();
         }
     }, [authenticated, user]);
 
-    const hasGoldBadge = profile.score > 2000;
-    const hasSilverBadge = profile.score > 1500 && !hasGoldBadge;
+    // Use fetched profile or fall back to initial/empty state that is graceful
+    const displayProfile = profile || {
+        id: 'Guest',
+        score: 0,
+        vouchCount: 0,
+        linkedAccounts: []
+    };
+
+    const hasGoldBadge = displayProfile.score > 2000;
+    const hasSilverBadge = displayProfile.score > 1500 && !hasGoldBadge;
 
     // Gating Condition: Authenticated AND Score > 1200
-    const isSecretVisible = authenticated && (viewerScore ?? 0) > 1200;
+    // Note: We use the fetched score for gating
+    const isSecretVisible = authenticated && (displayProfile.score) > 1200;
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -55,26 +57,22 @@ export function ProfileCard({ profile }: ProfileCardProps) {
     };
 
     return (
-        <div className="w-full max-w-md mx-auto p-4 md:p-0"> {/* Mobile padding */}
-            <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-black shadow-2xl border border-gray-100 dark:border-gray-800">
-                {/* Abstract Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 dark:from-indigo-500/20 dark:via-purple-500/20 dark:to-pink-500/20 opacity-50 pointer-events-none" />
+        <div className="w-full max-w-md mx-auto p-4 md:p-0">
+            <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-sm transition-all hover:shadow-md">
 
                 <div className="relative p-8 flex flex-col items-center text-center space-y-6">
-                    {/* Avatar / Identity Placeholder */}
+                    {/* Minimal Avatar */}
                     <div className="relative">
-                        <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-blue-400 to-purple-600 p-1">
-                            <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 flex items-center justify-center text-3xl font-bold text-gray-800 dark:text-gray-100">
-                                {profile.id.substring(0, 2).toUpperCase()}
-                            </div>
+                        <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-2xl font-bold text-gray-800 dark:text-gray-100 ring-4 ring-white dark:ring-black">
+                            {displayProfile.id ? displayProfile.id.substring(0, 2).toUpperCase() : '??'}
                         </div>
                         {/* Badges */}
                         {(hasGoldBadge || hasSilverBadge) && (
                             <div className={cn(
-                                "absolute -bottom-2 -right-2 px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg flex items-center gap-1",
-                                hasGoldBadge ? "bg-amber-400" : "bg-slate-400"
+                                "absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-sm flex items-center gap-1",
+                                hasGoldBadge ? "bg-amber-500" : "bg-slate-500"
                             )}>
-                                <ShieldCheck size={14} />
+                                <ShieldCheck size={12} />
                                 {hasGoldBadge ? 'GOLD' : 'SILVER'}
                             </div>
                         )}
@@ -82,57 +80,59 @@ export function ProfileCard({ profile }: ProfileCardProps) {
 
                     {/* Stats */}
                     <div className="space-y-1">
-                        <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                            Trust Score: {profile.score}
+                        <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                            {displayProfile.score > 0 ? `Trust Score: ${displayProfile.score}` : 'No Score Yet'}
                         </h2>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                            {profile.vouchCount} Vouches
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {displayProfile.vouchCount} Vouches
                         </p>
                     </div>
 
                     {/* Connected Accounts */}
-                    <div className="flex gap-4">
-                        {profile.linkedAccounts.map((acc, i) => (
-                            <div key={i} className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                                {acc.service === 'x' && <Twitter size={20} />}
-                                {acc.service === 'discord' && <Disc size={20} />}
-                            </div>
-                        ))}
-                    </div>
+                    {displayProfile.linkedAccounts.length > 0 && (
+                        <div className="flex gap-3">
+                            {displayProfile.linkedAccounts.map((acc, i) => (
+                                <div key={i} className="p-2 rounded-full bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400 border border-gray-100 dark:border-gray-800">
+                                    {acc.service === 'x' && <Twitter size={16} />}
+                                    {acc.service === 'discord' && <Disc size={16} />}
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
-                    {/* Copy Link Button */}
+                    {/* Actions */}
                     <button
                         onClick={handleCopyLink}
-                        className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-black dark:bg-white text-white dark:text-black font-semibold text-sm transition-transform active:scale-95 hover:opacity-90"
+                        className="flex items-center gap-2 px-5 py-2 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium text-xs transition-transform active:scale-95 hover:opacity-90"
                     >
-                        <Copy size={16} />
-                        {isCopied ? 'Copied!' : 'Copy Link'}
+                        <Copy size={14} />
+                        {isCopied ? 'Copied' : 'Share Profile'}
                     </button>
                 </div>
 
                 {/* Secret Content Section */}
-                <div className="border-t border-gray-100 dark:border-gray-800 p-8 bg-gray-50/50 dark:bg-gray-900/50">
+                <div className="border-t border-gray-100 dark:border-gray-800 p-6 bg-gray-50/30 dark:bg-gray-900/30">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                             Secret Content
-                            {isSecretVisible ? <Unlock size={16} className="text-green-500" /> : <Lock size={16} className="text-gray-400" />}
+                            {isSecretVisible ? <Unlock size={14} className="text-emerald-500" /> : <Lock size={14} className="text-gray-400" />}
                         </h3>
                     </div>
 
                     <div className="relative">
                         <div className={cn(
-                            "p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-all duration-500",
-                            !isSecretVisible && "blur-md select-none opacity-50"
+                            "p-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-all duration-300",
+                            !isSecretVisible && "blur-sm opacity-60"
                         )}>
-                            <p className="text-gray-600 dark:text-gray-300">
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
                                 This content is exclusively available to trusted members of the Ethos network with a score over 1200.
-                                Here is the secret code: <strong>TRUST-TREE-VIP-PRIVY-2025</strong>
+                                Code: <strong>TRUST-TREE-VIP-PRIVY-2025</strong>
                             </p>
                         </div>
 
                         {!isSecretVisible && (
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="px-4 py-2 bg-black/80 text-white text-xs font-bold rounded-lg shadow-xl backdrop-blur-sm text-center">
+                                <div className="px-3 py-1.5 bg-black/80 text-white text-[10px] font-bold rounded-md shadow-lg backdrop-blur-sm">
                                     {authenticated ? "SCORE 1200+ REQUIRED" : "LOGIN REQUIRED"}
                                 </div>
                             </div>
