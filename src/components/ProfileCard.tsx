@@ -2,7 +2,7 @@
 
 import { EthosProfile, getEthosData } from '@/lib/ethos';
 import { usePrivy } from '@privy-io/react-auth';
-import { Copy, Lock, ShieldCheck, Twitter, Disc, Unlock } from 'lucide-react';
+import { Copy, Lock, Twitter, Unlock, ExternalLink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -17,17 +17,11 @@ interface ProfileCardProps {
 
 /**
  * Gets the Ethos wallet address from the user's linked accounts.
- * 
- * Priority order for Ethos lookup:
- * 1. Cross-app embedded wallet - Ethos search can resolve this to the full profile
- * 2. Regular connected wallet - fallback if no cross-app
- * 3. user.wallet fallback
  */
 function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): string | null {
     if (!user) return null;
 
-    // PRIORITY 1: Check for cross-app linked accounts FIRST
-    // The cross-app embedded wallet is linked to the user's Ethos profile in their system
+    // PRIORITY 1: Cross-app embedded wallet
     const crossAppAccount = user.linkedAccounts?.find(
         (account) => account.type === 'cross_app'
     );
@@ -39,7 +33,7 @@ function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): strin
         }
     }
 
-    // PRIORITY 2: Check for regular wallet accounts
+    // PRIORITY 2: Regular wallet accounts
     const walletAccount = user.linkedAccounts?.find(
         (account) => account.type === 'wallet' && 'address' in account
     );
@@ -48,7 +42,7 @@ function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): strin
         return (walletAccount as { address: string }).address;
     }
 
-    // PRIORITY 3: Fallback to user.wallet
+    // PRIORITY 3: Fallback
     return user.wallet?.address || null;
 }
 
@@ -57,14 +51,17 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     const [profile, setProfile] = useState<EthosProfile | null>(initialProfile || null);
     const [isCopied, setIsCopied] = useState(false);
 
+    // Display settings
+    const [showScore, setShowScore] = useState(true);
+    const [showVouches, setShowVouches] = useState(true);
+    const [showSocials, setShowSocials] = useState(true);
+
     useEffect(() => {
         async function fetchUserProfile() {
             const walletAddress = getEthosWalletAddress(user);
 
             if (authenticated && walletAddress) {
-                console.log('[ProfileCard] Fetching Ethos profile for:', walletAddress);
                 const data = await getEthosData(walletAddress);
-
                 if (data) {
                     setProfile(data);
                 }
@@ -76,7 +73,6 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
         }
     }, [authenticated, user]);
 
-    // Use fetched profile or fall back to initial/empty state
     const displayProfile = profile || {
         id: 'Guest',
         score: 0,
@@ -84,11 +80,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
         linkedAccounts: []
     };
 
-    const hasGoldBadge = displayProfile.score > 2000;
-    const hasSilverBadge = displayProfile.score > 1500 && !hasGoldBadge;
-
     // Gating Condition: Authenticated AND Score > 1200
-    // Note: We use the fetched score for gating
     const isSecretVisible = authenticated && (displayProfile.score) > 1200;
 
     const handleCopyLink = () => {
@@ -96,6 +88,12 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
     };
+
+    // Get social info - use the profile username (X username)
+    const xUsername = displayProfile.username; // This is the X username from Ethos API
+    const hasDiscord = displayProfile.linkedAccounts.some(a => a.service === 'discord');
+    const hasFarcaster = displayProfile.linkedAccounts.some(a => a.service === 'farcaster');
+    const hasTelegram = displayProfile.linkedAccounts.some(a => a.service === 'telegram');
 
     return (
         <div className="w-full max-w-md mx-auto p-4 md:p-0">
@@ -115,60 +113,64 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                                 {displayProfile.username ? displayProfile.username.substring(0, 2).toUpperCase() : '??'}
                             </div>
                         )}
-                        {/* Badges */}
-                        {(hasGoldBadge || hasSilverBadge) && (
-                            <div className={cn(
-                                "absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-sm flex items-center gap-1",
-                                hasGoldBadge ? "bg-amber-500" : "bg-slate-500"
-                            )}>
-                                <ShieldCheck size={12} />
-                                {hasGoldBadge ? 'GOLD' : 'SILVER'}
+                    </div>
+
+                    {/* Display Name */}
+                    {displayProfile.displayName && (
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {displayProfile.displayName}
+                        </h2>
+                    )}
+
+                    {/* Stats */}
+                    <div className="space-y-2">
+                        {showScore && (
+                            <div className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                                {displayProfile.score > 0 ? `Trust Score: ${displayProfile.score}` : 'No Score Yet'}
                             </div>
+                        )}
+                        {showVouches && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {displayProfile.vouchCount} Vouches
+                            </p>
                         )}
                     </div>
 
-                    {/* Stats */}
-                    <div className="space-y-1">
-                        <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-                            {displayProfile.score > 0 ? `Trust Score: ${displayProfile.score}` : 'No Score Yet'}
-                        </h2>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {displayProfile.vouchCount} Vouches
-                        </p>
-                    </div>
-
-                    {/* Connected Accounts - Clickable Links */}
-                    {displayProfile.linkedAccounts.length > 0 && (
-                        <div className="flex gap-3">
-                            {displayProfile.linkedAccounts.map((acc, i) => {
-                                let href = '';
-                                if (acc.service === 'x' && acc.username) {
-                                    href = `https://x.com/${acc.username}`;
-                                } else if (acc.service === 'discord') {
-                                    href = 'https://discord.com';
-                                } else if (acc.service === 'farcaster' && acc.username) {
-                                    href = `https://warpcast.com/${acc.username}`;
-                                }
-
-                                return (
-                                    <a
-                                        key={i}
-                                        href={href || '#'}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={cn(
-                                            "p-2 rounded-full bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400 border border-gray-100 dark:border-gray-800 transition-all",
-                                            href && "hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white cursor-pointer"
-                                        )}
-                                        title={acc.username ? `@${acc.username}` : acc.service}
-                                    >
-                                        {acc.service === 'x' && <Twitter size={16} />}
-                                        {acc.service === 'discord' && <Disc size={16} />}
-                                        {acc.service === 'farcaster' && <span className="text-xs font-bold">FC</span>}
-                                        {acc.service === 'telegram' && <span className="text-xs font-bold">TG</span>}
-                                    </a>
-                                );
-                            })}
+                    {/* Social Accounts */}
+                    {showSocials && (
+                        <div className="flex flex-wrap justify-center gap-2">
+                            {xUsername && (
+                                <a
+                                    href={`https://x.com/${xUsername}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400 border border-gray-100 dark:border-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all text-xs"
+                                >
+                                    <Twitter size={14} />
+                                    @{xUsername}
+                                </a>
+                            )}
+                            {hasDiscord && (
+                                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 text-xs">
+                                    Discord Connected
+                                </span>
+                            )}
+                            {hasFarcaster && (
+                                <a
+                                    href={xUsername ? `https://warpcast.com/${xUsername}` : 'https://warpcast.com'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-800/50 transition-all text-xs"
+                                >
+                                    Farcaster
+                                    <ExternalLink size={12} />
+                                </a>
+                            )}
+                            {hasTelegram && (
+                                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 border border-sky-100 dark:border-sky-800 text-xs">
+                                    Telegram Connected
+                                </span>
+                            )}
                         </div>
                     )}
 
@@ -207,9 +209,8 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                                 </a>
                             )}
                             <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-                                <p>✓ {displayProfile.score >= 1500 ? 'High trust verified member' : 'Verified Ethos member'}</p>
+                                <p>✓ Verified Ethos member</p>
                                 <p>✓ {displayProfile.vouchCount} vouches received from the community</p>
-                                {displayProfile.score >= 1800 && <p>✓ Top tier trust score</p>}
                             </div>
                         </div>
 
@@ -222,6 +223,64 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         )}
                     </div>
                 </div>
+
+                {/* Settings - Only visible when logged in */}
+                {authenticated && (
+                    <div className="border-t border-gray-100 dark:border-gray-800 p-4 bg-gray-50/50 dark:bg-gray-900/50">
+                        <details className="group">
+                            <summary className="text-xs font-medium text-gray-500 dark:text-gray-400 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300">
+                                Display Settings
+                            </summary>
+                            <div className="mt-3 space-y-2 text-xs">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={showScore}
+                                        onChange={(e) => setShowScore(e.target.checked)}
+                                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <span className="text-gray-600 dark:text-gray-400">Show Trust Score</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={showVouches}
+                                        onChange={(e) => setShowVouches(e.target.checked)}
+                                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <span className="text-gray-600 dark:text-gray-400">Show Vouches</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={showSocials}
+                                        onChange={(e) => setShowSocials(e.target.checked)}
+                                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <span className="text-gray-600 dark:text-gray-400">Show Social Accounts</span>
+                                </label>
+                            </div>
+                        </details>
+                    </div>
+                )}
+            </div>
+
+            {/* Footer / Creator Credit */}
+            <div className="mt-4 text-center">
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                    Created by{' '}
+                    <a
+                        href="https://x.com/0xarshia"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:underline"
+                    >
+                        0xarshia.eth
+                    </a>
+                </p>
+                <p className="text-[10px] text-gray-400 dark:text-gray-600 mt-1">
+                    Login to view your score and secret content.
+                </p>
             </div>
         </div>
     );
