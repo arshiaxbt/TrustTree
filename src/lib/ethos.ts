@@ -21,30 +21,31 @@ export interface EthosProfile {
  */
 export async function getEthosData(address: string): Promise<EthosProfile | null> {
     try {
-        // Correct endpoint for fetching by wallet address based on API v2 docs
-        const url = `https://api.ethos.network/api/v2/users/by/address/${address}`;
-
-        // Note: The previous endpoint /profile might have been wrong.
-        // Trying a more standard likelihood or logging response body.
+        // Use our internal proxy to avoid CORS and handle headers
+        const url = `/api/profile?address=${address}`;
 
         const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Ethos-Client': 'trust-tree'
             },
         });
 
         if (!response.ok) {
-            console.error('Failed to fetch Ethos data:', response.status, response.statusText);
-            // Attempt fallback to another likely endpoint if first fails?
+            console.error('Failed to fetch Ethos data (proxy):', response.status);
             return null;
         }
 
         const data = await response.json();
 
+        // Verify we got a user object. API get-user-by-address usually returns the user object directly.
+        if (!data || !data.score) {
+            // It might be nested or just missing if user not found/scored
+            console.warn('Ethos data missing or incomplete:', data);
+        }
+
         return {
-            id: data.profileId || data.username || address,
+            id: data.profileId || data.username || data.id || address,
             score: data.score || 0,
             vouchCount: data.vouchCount || data.vouchesCount || 0,
             linkedAccounts: data.linkedAccounts || [],

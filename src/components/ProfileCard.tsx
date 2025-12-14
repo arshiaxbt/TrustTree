@@ -15,6 +15,30 @@ interface ProfileCardProps {
     initialProfile?: EthosProfile;
 }
 
+/**
+ * Gets the Ethos wallet address from the user's linked accounts.
+ * When logging in with Ethos (cross-app auth via Privy), the wallet is stored
+ * in linkedAccounts as a 'cross_app' type with embeddedWallets array.
+ */
+function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): string | null {
+    if (!user) return null;
+
+    // First, check for cross-app linked accounts (Ethos login)
+    const crossAppAccount = user.linkedAccounts?.find(
+        (account) => account.type === 'cross_app'
+    );
+
+    if (crossAppAccount && 'embeddedWallets' in crossAppAccount) {
+        const wallets = (crossAppAccount as { embeddedWallets?: Array<{ address: string }> }).embeddedWallets;
+        if (wallets?.[0]?.address) {
+            return wallets[0].address;
+        }
+    }
+
+    // Fallback to regular wallet address
+    return user.wallet?.address || null;
+}
+
 export function ProfileCard({ initialProfile }: ProfileCardProps) {
     const { authenticated, user } = usePrivy();
     const [profile, setProfile] = useState<EthosProfile | null>(initialProfile || null);
@@ -22,8 +46,10 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
 
     useEffect(() => {
         async function fetchUserProfile() {
-            if (authenticated && user?.wallet?.address) {
-                const data = await getEthosData(user.wallet.address);
+            const walletAddress = getEthosWalletAddress(user);
+            if (authenticated && walletAddress) {
+                console.log('[ProfileCard] Fetching Ethos profile for wallet:', walletAddress);
+                const data = await getEthosData(walletAddress);
                 if (data) {
                     setProfile(data);
                 }
