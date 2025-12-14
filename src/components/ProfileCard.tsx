@@ -118,12 +118,21 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
 
                 {/* DEBUG INFO - Remove after debugging */}
                 {authenticated && (
-                    <div className="bg-yellow-100 dark:bg-yellow-900 p-3 text-xs font-mono border-b border-yellow-300 dark:border-yellow-700">
+                    <div className="bg-yellow-100 dark:bg-yellow-900 p-3 text-xs font-mono border-b border-yellow-300 dark:border-yellow-700 overflow-x-auto">
                         <div className="font-bold text-yellow-800 dark:text-yellow-200 mb-1">🔍 Debug Info (remove after testing)</div>
-                        <div className="text-yellow-700 dark:text-yellow-300">
-                            <div>Wallet: {currentWallet || 'NOT FOUND'}</div>
+                        <div className="text-yellow-700 dark:text-yellow-300 space-y-1">
+                            <div>Using Wallet: {currentWallet || 'NOT FOUND'}</div>
                             <div>Score: {displayProfile.score}</div>
                             <div>linkedAccounts types: {user?.linkedAccounts?.map(a => a.type).join(', ') || 'none'}</div>
+                            <div className="border-t border-yellow-400 pt-1 mt-1">All accounts:</div>
+                            {user?.linkedAccounts?.map((acc, i) => (
+                                <div key={i} className="pl-2 text-[10px]">
+                                    [{i}] type: {acc.type}
+                                    {'address' in acc && ` | addr: ${(acc as { address: string }).address}`}
+                                    {'embeddedWallets' in acc && ` | embedded: ${JSON.stringify((acc as { embeddedWallets?: Array<{ address: string }> }).embeddedWallets?.map(w => w.address))}`}
+                                    {'providerApp' in acc && ` | provider: ${(acc as { providerApp?: { name: string } }).providerApp?.name}`}
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}
