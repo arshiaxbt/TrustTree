@@ -18,30 +18,19 @@ interface ProfileCardProps {
 /**
  * Gets the Ethos wallet address from the user's linked accounts.
  * 
- * Priority order:
- * 1. Regular connected wallet (type: 'wallet') - this is the user's actual wallet with their Ethos profile
- * 2. Cross-app embedded wallet - this is a Privy-generated wallet, may not have the Ethos profile
+ * Priority order for Ethos lookup:
+ * 1. Cross-app embedded wallet - Ethos search can resolve this to the full profile
+ * 2. Regular connected wallet - fallback if no cross-app
  * 3. user.wallet fallback
  */
 function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): string | null {
     if (!user) return null;
 
-    // Debug: Log the entire user object to understand its structure
-    console.log('[DEBUG] Full user object:', JSON.stringify(user, null, 2));
+    // Debug: Log the user object structure
     console.log('[DEBUG] user.linkedAccounts:', user.linkedAccounts);
 
-    // PRIORITY 1: Check for regular wallet accounts first (this is the user's actual connected wallet)
-    const walletAccount = user.linkedAccounts?.find(
-        (account) => account.type === 'wallet' && 'address' in account
-    );
-
-    if (walletAccount && 'address' in walletAccount) {
-        const address = (walletAccount as { address: string }).address;
-        console.log('[DEBUG] Using connected wallet address:', address);
-        return address;
-    }
-
-    // PRIORITY 2: Check for cross-app linked accounts (Ethos login embedded wallet)
+    // PRIORITY 1: Check for cross-app linked accounts FIRST
+    // The cross-app embedded wallet is linked to the user's Ethos profile in their system
     const crossAppAccount = user.linkedAccounts?.find(
         (account) => account.type === 'cross_app'
     );
@@ -57,41 +46,42 @@ function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): strin
         }
     }
 
+    // PRIORITY 2: Check for regular wallet accounts
+    const walletAccount = user.linkedAccounts?.find(
+        (account) => account.type === 'wallet' && 'address' in account
+    );
+
+    if (walletAccount && 'address' in walletAccount) {
+        const address = (walletAccount as { address: string }).address;
+        console.log('[DEBUG] Using connected wallet address:', address);
+        return address;
+    }
+
     // PRIORITY 3: Fallback to user.wallet
     console.log('[DEBUG] Fallback to user.wallet:', user.wallet);
     return user.wallet?.address || null;
 }
 
 export function ProfileCard({ initialProfile }: ProfileCardProps) {
-    const { authenticated, user, getAccessToken } = usePrivy();
+    const { authenticated, user } = usePrivy();
     const [profile, setProfile] = useState<EthosProfile | null>(initialProfile || null);
     const [isCopied, setIsCopied] = useState(false);
     const [debugInfo, setDebugInfo] = useState<string>('');
-    const [authStatus, setAuthStatus] = useState<string>('');
 
     useEffect(() => {
         async function fetchUserProfile() {
             const walletAddress = getEthosWalletAddress(user);
-            setDebugInfo(`Wallet: ${walletAddress || 'none'}, Auth: ${authenticated}`);
+            setDebugInfo(`Wallet: ${walletAddress || 'none'}`);
 
-            if (authenticated) {
-                try {
-                    // Get the Privy access token
-                    const accessToken = await getAccessToken();
-                    console.log('[ProfileCard] Got access token:', accessToken ? 'yes' : 'no');
-                    setAuthStatus(accessToken ? 'Token OK' : 'No token');
+            if (authenticated && walletAddress) {
+                console.log('[ProfileCard] Fetching Ethos profile for:', walletAddress);
 
-                    // Fetch Ethos profile using authenticated API
-                    const data = await getEthosData(walletAddress || '', accessToken || undefined);
-                    console.log('[ProfileCard] Received Ethos data:', data);
+                const data = await getEthosData(walletAddress);
+                console.log('[ProfileCard] Received Ethos data:', data);
 
-                    if (data) {
-                        setProfile(data);
-                        setDebugInfo(`Wallet: ${data.primaryAddress || walletAddress || 'none'}, Score: ${data.score}`);
-                    }
-                } catch (error) {
-                    console.error('[ProfileCard] Error fetching profile:', error);
-                    setAuthStatus(`Error: ${error}`);
+                if (data) {
+                    setProfile(data);
+                    setDebugInfo(`Wallet: ${walletAddress}, Score: ${data.score}`);
                 }
             }
         }
@@ -99,7 +89,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
         if (authenticated) {
             fetchUserProfile();
         }
-    }, [authenticated, user, getAccessToken]);
+    }, [authenticated, user]);
 
     // Use fetched profile or fall back to initial/empty state that is graceful
     const displayProfile = profile || {
@@ -136,7 +126,6 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         <div className="text-yellow-700 dark:text-yellow-300 space-y-1">
                             <div>Using Wallet: {currentWallet || 'NOT FOUND'}</div>
                             <div>Score: {displayProfile.score}</div>
-                            <div>Auth Token: {authStatus || 'pending'}</div>
                             <div>linkedAccounts types: {user?.linkedAccounts?.map(a => a.type).join(', ') || 'none'}</div>
                             <div className="border-t border-yellow-400 pt-1 mt-1">All accounts:</div>
                             {user?.linkedAccounts?.map((acc, i) => (

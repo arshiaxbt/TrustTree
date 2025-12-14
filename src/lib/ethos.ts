@@ -9,17 +9,23 @@ export interface EthosProfile {
     vouchCount: number;
     linkedAccounts: SocialAccount[];
     primaryAddress?: string;
+    username?: string;
+    displayName?: string;
+    avatarUrl?: string;
 }
 
 /**
- * Fetches Ethos profile data by address (unauthenticated).
- * Falls back to this if no auth token is available.
+ * Fetches Ethos profile data using the internal proxy.
+ * The proxy uses the Ethos search API which can resolve cross-app embedded wallets
+ * to the user's full Ethos profile.
+ * 
+ * @param address - The wallet address to search for
  */
-export async function getEthosDataByAddress(address: string): Promise<EthosProfile | null> {
+export async function getEthosData(address: string): Promise<EthosProfile | null> {
     try {
-        const url = `/api/profile?address=${address}`;
+        console.log('[Ethos] Fetching profile for address:', address);
 
-        const response = await fetch(url, {
+        const response = await fetch(`/api/profile?address=${address}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -27,103 +33,49 @@ export async function getEthosDataByAddress(address: string): Promise<EthosProfi
         });
 
         if (!response.ok) {
-            console.error('Failed to fetch Ethos data by address:', response.status);
+            console.error('[Ethos] Failed to fetch profile:', response.status);
             return null;
         }
 
         const data = await response.json();
 
-        if (!data || data.code === 'NOT_FOUND') {
-            console.warn('Ethos profile not found for address:', address);
+        if (data.error || data.code === 'NOT_FOUND') {
+            console.warn('[Ethos] Profile not found:', data.error);
             return null;
         }
 
-        return {
-            id: data.profileId || data.username || data.id || address,
-            score: data.score || 0,
-            vouchCount: data.vouchCount || data.vouchesCount || 0,
-            linkedAccounts: data.linkedAccounts || [],
-            primaryAddress: data.primaryAddress || address,
-        };
-    } catch (error) {
-        console.error('Error fetching Ethos data by address:', error);
-        return null;
-    }
-}
+        console.log('[Ethos] Received profile data:', data);
 
-/**
- * Fetches authenticated user's Ethos profile using Privy access token.
- * This exchanges the Privy token for Ethos session and gets the user's actual profile.
- */
-export async function getAuthenticatedEthosProfile(accessToken: string): Promise<EthosProfile | null> {
-    try {
-        console.log('[Ethos] Fetching authenticated profile...');
-
-        // First, exchange Privy token for Ethos auth
-        const authResponse = await fetch('https://api.ethos.network/api/v2/auth/exchange', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`,
-                'X-Ethos-Client': 'trust-tree',
-            },
-            credentials: 'include', // Important for cookies
-        });
-
-        console.log('[Ethos] Auth exchange response:', authResponse.status);
-
-        if (!authResponse.ok) {
-            const errorText = await authResponse.text();
-            console.error('[Ethos] Auth exchange failed:', errorText);
-            return null;
-        }
-
-        const authData = await authResponse.json();
-        console.log('[Ethos] Auth exchange data:', authData);
-
-        // The auth exchange should return user info including profileId
-        // Now fetch the user profile using the profile ID or address from auth
-        if (authData.profileId || authData.address || authData.userAddress) {
-            const profileAddress = authData.userAddress || authData.address || `profileId:${authData.profileId}`;
-
-            // Call our proxy with the authenticated user's address
-            const profileData = await getEthosDataByAddress(profileAddress);
-            if (profileData) {
-                return profileData;
+        // Parse linked accounts from userkeys format (e.g., "service:x.com:123")
+        const socialAccounts: SocialAccount[] = [];
+        if (data.linkedAccounts) {
+            for (const key of data.linkedAccounts) {
+                if (typeof key === 'string' && key.startsWith('service:')) {
+                    const parts = key.split(':');
+                    if (parts.length >= 2) {
+                        const serviceRaw = parts[1];
+                        const service = serviceRaw.replace('.com', '') as SocialAccount['service'];
+                        socialAccounts.push({
+                            service,
+                            username: parts[2] || '',
+                        });
+                    }
+                }
             }
         }
 
-        // If auth data contains user info directly
-        if (authData.score !== undefined) {
-            return {
-                id: authData.profileId || authData.username || 'user',
-                score: authData.score || 0,
-                vouchCount: authData.vouchCount || 0,
-                linkedAccounts: authData.linkedAccounts || [],
-                primaryAddress: authData.primaryAddress,
-            };
-        }
-
-        return null;
+        return {
+            id: String(data.profileId || data.id || address),
+            score: data.score || 0,
+            vouchCount: data.vouchCount || 0,
+            linkedAccounts: socialAccounts,
+            primaryAddress: data.primaryAddress || address,
+            username: data.username,
+            displayName: data.displayName,
+            avatarUrl: data.avatarUrl,
+        };
     } catch (error) {
-        console.error('[Ethos] Error fetching authenticated profile:', error);
+        console.error('[Ethos] Error fetching profile:', error);
         return null;
     }
-}
-
-/**
- * Fetches Ethos profile - tries authenticated first, then falls back to address lookup.
- */
-export async function getEthosData(address: string, accessToken?: string): Promise<EthosProfile | null> {
-    // If we have an access token, try authenticated approach first
-    if (accessToken) {
-        const authProfile = await getAuthenticatedEthosProfile(accessToken);
-        if (authProfile && authProfile.score > 0) {
-            console.log('[Ethos] Got authenticated profile:', authProfile);
-            return authProfile;
-        }
-    }
-
-    // Fall back to address lookup
-    return getEthosDataByAddress(address);
 }
