@@ -1,5 +1,5 @@
 export interface SocialAccount {
-    service: 'x' | 'discord' | 'farcaster' | 'google' | 'email';
+    service: 'x' | 'discord' | 'farcaster' | 'google' | 'email' | 'telegram';
     username: string;
 }
 
