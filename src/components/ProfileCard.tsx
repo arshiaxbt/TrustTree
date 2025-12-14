@@ -145,6 +145,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                                     {'address' in acc && ` | addr: ${(acc as { address: string }).address}`}
                                     {'embeddedWallets' in acc && ` | embedded: ${JSON.stringify((acc as { embeddedWallets?: Array<{ address: string }> }).embeddedWallets?.map(w => w.address))}`}
                                     {'providerApp' in acc && ` | provider: ${(acc as { providerApp?: { name: string } }).providerApp?.name}`}
+                                    {'subject' in acc && ` | subject: ${(acc as { subject: string }).subject}`}
                                 </div>
                             ))}
                         </div>
