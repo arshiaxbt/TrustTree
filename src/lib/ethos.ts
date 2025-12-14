@@ -21,8 +21,8 @@ export interface EthosProfile {
  */
 export async function getEthosData(address: string): Promise<EthosProfile | null> {
     try {
-        // Based on API v2 documentation patterns
-        const url = `https://api.ethos.network/api/v2/users/by/id/${address}`;
+        // Correct endpoint for fetching by wallet address based on API v2 docs
+        const url = `https://api.ethos.network/api/v2/users/by/address/${address}`;
 
         // Note: The previous endpoint /profile might have been wrong.
         // Trying a more standard likelihood or logging response body.
