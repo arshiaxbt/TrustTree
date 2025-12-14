@@ -17,8 +17,11 @@ interface ProfileCardProps {
 
 /**
  * Gets the Ethos wallet address from the user's linked accounts.
- * When logging in with Ethos (cross-app auth via Privy), the wallet is stored
- * in linkedAccounts as a 'cross_app' type with embeddedWallets array.
+ * 
+ * Priority order:
+ * 1. Regular connected wallet (type: 'wallet') - this is the user's actual wallet with their Ethos profile
+ * 2. Cross-app embedded wallet - this is a Privy-generated wallet, may not have the Ethos profile
+ * 3. user.wallet fallback
  */
 function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): string | null {
     if (!user) return null;
@@ -27,7 +30,18 @@ function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): strin
     console.log('[DEBUG] Full user object:', JSON.stringify(user, null, 2));
     console.log('[DEBUG] user.linkedAccounts:', user.linkedAccounts);
 
-    // First, check for cross-app linked accounts (Ethos login)
+    // PRIORITY 1: Check for regular wallet accounts first (this is the user's actual connected wallet)
+    const walletAccount = user.linkedAccounts?.find(
+        (account) => account.type === 'wallet' && 'address' in account
+    );
+
+    if (walletAccount && 'address' in walletAccount) {
+        const address = (walletAccount as { address: string }).address;
+        console.log('[DEBUG] Using connected wallet address:', address);
+        return address;
+    }
+
+    // PRIORITY 2: Check for cross-app linked accounts (Ethos login embedded wallet)
     const crossAppAccount = user.linkedAccounts?.find(
         (account) => account.type === 'cross_app'
     );
@@ -38,12 +52,12 @@ function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): strin
         const wallets = (crossAppAccount as { embeddedWallets?: Array<{ address: string }> }).embeddedWallets;
         console.log('[DEBUG] embeddedWallets:', wallets);
         if (wallets?.[0]?.address) {
-            console.log('[DEBUG] Using cross-app wallet address:', wallets[0].address);
+            console.log('[DEBUG] Using cross-app embedded wallet address:', wallets[0].address);
             return wallets[0].address;
         }
     }
 
-    // Fallback to regular wallet address
+    // PRIORITY 3: Fallback to user.wallet
     console.log('[DEBUG] Fallback to user.wallet:', user.wallet);
     return user.wallet?.address || null;
 }

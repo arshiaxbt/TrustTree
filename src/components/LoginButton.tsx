@@ -5,13 +5,25 @@ import { LogOut } from 'lucide-react';
 
 /**
  * Gets the Ethos wallet address from the user's linked accounts.
- * When logging in with Ethos (cross-app auth via Privy), the wallet is stored
- * in linkedAccounts as a 'cross_app' type with embeddedWallets array.
+ * 
+ * Priority order:
+ * 1. Regular connected wallet (type: 'wallet') - this is the user's actual wallet with their Ethos profile
+ * 2. Cross-app embedded wallet - this is a Privy-generated wallet, may not have the Ethos profile
+ * 3. user.wallet fallback
  */
 function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): string | null {
     if (!user) return null;
 
-    // First, check for cross-app linked accounts (Ethos login)
+    // PRIORITY 1: Check for regular wallet accounts first (this is the user's actual connected wallet)
+    const walletAccount = user.linkedAccounts?.find(
+        (account) => account.type === 'wallet' && 'address' in account
+    );
+
+    if (walletAccount && 'address' in walletAccount) {
+        return (walletAccount as { address: string }).address;
+    }
+
+    // PRIORITY 2: Check for cross-app linked accounts (Ethos login embedded wallet)
     const crossAppAccount = user.linkedAccounts?.find(
         (account) => account.type === 'cross_app'
     );
@@ -23,7 +35,7 @@ function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): strin
         }
     }
 
-    // Fallback to regular wallet address
+    // PRIORITY 3: Fallback to user.wallet
     return user.wallet?.address || null;
 }
 
