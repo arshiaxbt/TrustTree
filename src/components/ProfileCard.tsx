@@ -23,19 +23,28 @@ interface ProfileCardProps {
 function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): string | null {
     if (!user) return null;
 
+    // Debug: Log the entire user object to understand its structure
+    console.log('[DEBUG] Full user object:', JSON.stringify(user, null, 2));
+    console.log('[DEBUG] user.linkedAccounts:', user.linkedAccounts);
+
     // First, check for cross-app linked accounts (Ethos login)
     const crossAppAccount = user.linkedAccounts?.find(
         (account) => account.type === 'cross_app'
     );
 
+    console.log('[DEBUG] crossAppAccount:', crossAppAccount);
+
     if (crossAppAccount && 'embeddedWallets' in crossAppAccount) {
         const wallets = (crossAppAccount as { embeddedWallets?: Array<{ address: string }> }).embeddedWallets;
+        console.log('[DEBUG] embeddedWallets:', wallets);
         if (wallets?.[0]?.address) {
+            console.log('[DEBUG] Using cross-app wallet address:', wallets[0].address);
             return wallets[0].address;
         }
     }
 
     // Fallback to regular wallet address
+    console.log('[DEBUG] Fallback to user.wallet:', user.wallet);
     return user.wallet?.address || null;
 }
 
@@ -43,13 +52,17 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     const { authenticated, user } = usePrivy();
     const [profile, setProfile] = useState<EthosProfile | null>(initialProfile || null);
     const [isCopied, setIsCopied] = useState(false);
+    const [debugInfo, setDebugInfo] = useState<string>('');
 
     useEffect(() => {
         async function fetchUserProfile() {
             const walletAddress = getEthosWalletAddress(user);
+            setDebugInfo(`Wallet: ${walletAddress || 'none'}, Auth: ${authenticated}`);
+
             if (authenticated && walletAddress) {
                 console.log('[ProfileCard] Fetching Ethos profile for wallet:', walletAddress);
                 const data = await getEthosData(walletAddress);
+                console.log('[ProfileCard] Received Ethos data:', data);
                 if (data) {
                     setProfile(data);
                 }
@@ -69,6 +82,9 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
         linkedAccounts: []
     };
 
+    // Get current wallet for debug display
+    const currentWallet = getEthosWalletAddress(user);
+
     const hasGoldBadge = displayProfile.score > 2000;
     const hasSilverBadge = displayProfile.score > 1500 && !hasGoldBadge;
 
@@ -85,6 +101,18 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     return (
         <div className="w-full max-w-md mx-auto p-4 md:p-0">
             <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-sm transition-all hover:shadow-md">
+
+                {/* DEBUG INFO - Remove after debugging */}
+                {authenticated && (
+                    <div className="bg-yellow-100 dark:bg-yellow-900 p-3 text-xs font-mono border-b border-yellow-300 dark:border-yellow-700">
+                        <div className="font-bold text-yellow-800 dark:text-yellow-200 mb-1">🔍 Debug Info (remove after testing)</div>
+                        <div className="text-yellow-700 dark:text-yellow-300">
+                            <div>Wallet: {currentWallet || 'NOT FOUND'}</div>
+                            <div>Score: {displayProfile.score}</div>
+                            <div>linkedAccounts types: {user?.linkedAccounts?.map(a => a.type).join(', ') || 'none'}</div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="relative p-8 flex flex-col items-center text-center space-y-6">
                     {/* Minimal Avatar */}
