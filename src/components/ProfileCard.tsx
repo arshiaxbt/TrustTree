@@ -63,22 +63,35 @@ function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): strin
 }
 
 export function ProfileCard({ initialProfile }: ProfileCardProps) {
-    const { authenticated, user } = usePrivy();
+    const { authenticated, user, getAccessToken } = usePrivy();
     const [profile, setProfile] = useState<EthosProfile | null>(initialProfile || null);
     const [isCopied, setIsCopied] = useState(false);
     const [debugInfo, setDebugInfo] = useState<string>('');
+    const [authStatus, setAuthStatus] = useState<string>('');
 
     useEffect(() => {
         async function fetchUserProfile() {
             const walletAddress = getEthosWalletAddress(user);
             setDebugInfo(`Wallet: ${walletAddress || 'none'}, Auth: ${authenticated}`);
 
-            if (authenticated && walletAddress) {
-                console.log('[ProfileCard] Fetching Ethos profile for wallet:', walletAddress);
-                const data = await getEthosData(walletAddress);
-                console.log('[ProfileCard] Received Ethos data:', data);
-                if (data) {
-                    setProfile(data);
+            if (authenticated) {
+                try {
+                    // Get the Privy access token
+                    const accessToken = await getAccessToken();
+                    console.log('[ProfileCard] Got access token:', accessToken ? 'yes' : 'no');
+                    setAuthStatus(accessToken ? 'Token OK' : 'No token');
+
+                    // Fetch Ethos profile using authenticated API
+                    const data = await getEthosData(walletAddress || '', accessToken || undefined);
+                    console.log('[ProfileCard] Received Ethos data:', data);
+
+                    if (data) {
+                        setProfile(data);
+                        setDebugInfo(`Wallet: ${data.primaryAddress || walletAddress || 'none'}, Score: ${data.score}`);
+                    }
+                } catch (error) {
+                    console.error('[ProfileCard] Error fetching profile:', error);
+                    setAuthStatus(`Error: ${error}`);
                 }
             }
         }
@@ -86,7 +99,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
         if (authenticated) {
             fetchUserProfile();
         }
-    }, [authenticated, user]);
+    }, [authenticated, user, getAccessToken]);
 
     // Use fetched profile or fall back to initial/empty state that is graceful
     const displayProfile = profile || {
@@ -123,6 +136,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         <div className="text-yellow-700 dark:text-yellow-300 space-y-1">
                             <div>Using Wallet: {currentWallet || 'NOT FOUND'}</div>
                             <div>Score: {displayProfile.score}</div>
+                            <div>Auth Token: {authStatus || 'pending'}</div>
                             <div>linkedAccounts types: {user?.linkedAccounts?.map(a => a.type).join(', ') || 'none'}</div>
                             <div className="border-t border-yellow-400 pt-1 mt-1">All accounts:</div>
                             {user?.linkedAccounts?.map((acc, i) => (
