@@ -2,7 +2,7 @@
 
 import { EthosProfile, getEthosData } from '@/lib/ethos';
 import { usePrivy } from '@privy-io/react-auth';
-import { Copy, Settings, Search, Check, ExternalLink, Loader2, Plus, Trash2, GripVertical, Sun, Moon, Monitor, Pencil } from 'lucide-react';
+import { Copy, Settings, Search, Check, ExternalLink, Loader2, Plus, Trash2, GripVertical, Sun, Moon, Monitor, X } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -13,7 +13,7 @@ function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-// ========== OFFICIAL BRAND SVG ICONS ==========
+// ========== BRAND SVG ICONS ==========
 
 const XIcon = ({ size = 16 }: { size?: number }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -28,35 +28,38 @@ const DiscordIcon = () => (
 );
 
 const FarcasterIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 1260 1260" fill="currentColor">
-        <path d="M947.747 1259.61H311.861C139.901 1259.61 0 1119.72 0 947.752V311.871C0 139.907 139.901 0.00585938 311.861 0.00585938H947.747C1119.71 0.00585938 1259.61 139.907 1259.61 311.871V947.752C1259.61 1119.72 1119.71 1259.61 947.747 1259.61Z" fill="#855DCD" />
-        <path d="M826.513 398.633L764.404 631.889L826.513 398.633H433.108L371.001 631.889L433.108 398.633H826.513ZM826.513 398.633H893.47V816.082C893.47 842.096 872.476 863.089 846.463 863.089H826.513H433.108H413.158C387.145 863.089 366.151 842.096 366.151 816.082V398.633H433.108" fill="#855DCD" />
-        <path d="M433.108 631.889H826.513" stroke="white" strokeWidth="83.7044" strokeLinecap="round" />
-        <path d="M705.152 631.889V758.613C705.152 791.248 678.735 817.665 646.1 817.665H612.87C580.235 817.665 553.818 791.248 553.818 758.613V631.889" stroke="white" strokeWidth="83.7044" strokeLinecap="round" />
+    <svg width="18" height="18" viewBox="0 0 1000 1000" fill="none">
+        <rect width="1000" height="1000" rx="200" fill="#855DCD" />
+        <path d="M257.778 155.556H742.222V844.445H671.111V528.889H670.414C662.554 441.677 589.258 373.333 500 373.333C410.742 373.333 337.446 441.677 329.586 528.889H328.889V844.445H257.778V155.556Z" fill="white" />
+        <path d="M128.889 253.333L157.778 351.111H182.222V746.667C169.949 746.667 160 756.616 160 768.889V795.556H155.556C143.283 795.556 133.333 805.505 133.333 817.778V844.445H382.222V817.778C382.222 805.505 372.273 795.556 360 795.556H355.556V768.889C355.556 756.616 345.606 746.667 333.333 746.667H306.667V253.333H128.889Z" fill="white" />
+        <path d="M871.111 253.333H693.333V746.667C681.06 746.667 671.111 756.616 671.111 768.889V795.556H666.667C654.394 795.556 644.444 805.505 644.444 817.778V844.445H893.333V817.778C893.333 805.505 883.384 795.556 871.111 795.556H866.667V768.889C866.667 756.616 856.717 746.667 844.444 746.667V351.111H868.889L897.778 253.333H871.111Z" fill="white" />
     </svg>
 );
 
 const TelegramIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+    <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="24" fill="#0088CC" />
+        <path d="M10.9 23.3c6.5-2.8 10.8-4.7 13-5.6 6.2-2.6 7.5-3 8.3-3 .2 0 .6 0 .9.3.2.2.3.5.3.7v.6c-.2 2.5-1.2 8.5-1.7 11.3-.2 1.2-.6 1.6-1.1 1.6-.9.1-1.6-.6-2.5-1.2-1.4-.9-2.2-1.5-3.5-2.4-1.5-1-.6-1.6.3-2.5.2-.2 4.2-3.9 4.3-4.2 0-.1 0-.2-.1-.3-.1 0-.2 0-.3 0-.1 0-2.3 1.5-6.6 4.4-.6.4-1.2.6-1.7.6-.6 0-1.6-.3-2.4-.6-1-.3-1.8-.5-1.7-1 0-.3.4-.6 1.1-.9z" fill="white" />
     </svg>
 );
 
 const DeBankIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 40 40" fill="currentColor">
+    <svg width="18" height="18" viewBox="0 0 40 40" fill="none">
         <circle cx="20" cy="20" r="20" fill="#FE815F" />
         <path d="M11 11h10c4.97 0 9 4.03 9 9s-4.03 9-9 9H11V11zm4 4v10h6c2.76 0 5-2.24 5-5s-2.24-5-5-5h-6z" fill="white" />
     </svg>
 );
 
+// Common emojis for picker
+const EMOJI_OPTIONS = ['🔗', '🌐', '📧', '💼', '🎮', '🎵', '📸', '🎨', '💰', '🛒', '📱', '💻', '🎬', '📚', '✨', '🚀', '💎', '🔥', '⚡', '🌟'];
+
 // ========== INTERFACES ==========
 
 interface ProfileCardProps { initialProfile?: EthosProfile; }
-interface ProfileSettings { showX: boolean; showDiscord: boolean; showFarcaster: boolean; showTelegram: boolean; showDeBank: boolean; socialOrder: string[]; }
+interface ProfileSettings { showX: boolean; showDiscord: boolean; showFarcaster: boolean; showTelegram: boolean; showDeBank: boolean; }
 interface CustomLink { id: string; title: string; url: string; emoji: string; }
 
-const defaultSocialOrder = ['x', 'discord', 'farcaster', 'telegram', 'debank'];
-const defaultSettings: ProfileSettings = { showX: true, showDiscord: true, showFarcaster: true, showTelegram: true, showDeBank: true, socialOrder: defaultSocialOrder };
+const defaultSettings: ProfileSettings = { showX: true, showDiscord: true, showFarcaster: true, showTelegram: true, showDeBank: true };
 
 function loadSettings(id: string): ProfileSettings {
     if (typeof window === 'undefined') return defaultSettings;
@@ -86,7 +89,15 @@ function getWallet(user: ReturnType<typeof usePrivy>['user']): string | null {
 }
 
 async function getTelegramUsername(userId: string): Promise<string | null> {
-    try { const res = await fetch(`/api/telegram?userId=${userId}`); if (res.ok) { const data = await res.json(); return data.username || null; } } catch { }
+    try {
+        const res = await fetch(`/api/telegram?userId=${userId}`);
+        if (res.ok) {
+            const data = await res.json();
+            return data.username || null;
+        }
+    } catch (e) {
+        console.error('[Telegram] Error:', e);
+    }
     return null;
 }
 
@@ -94,24 +105,30 @@ async function getTelegramUsername(userId: string): Promise<string | null> {
 
 function ThemeToggle() {
     const { theme, setTheme } = useTheme();
+
     return (
-        <div className="flex items-center gap-1 p-1 rounded-xl bg-white/50 dark:bg-white/10 backdrop-blur-xl">
-            {[
-                { value: 'light', Icon: Sun },
-                { value: 'system', Icon: Monitor },
-                { value: 'dark', Icon: Moon },
-            ].map(({ value, Icon }) => (
-                <button
-                    key={value}
-                    onClick={() => setTheme(value as 'light' | 'dark' | 'system')}
-                    className={cn(
-                        "p-2 rounded-lg transition-all",
-                        theme === value ? "bg-white dark:bg-white/20 shadow-sm text-blue-500" : "text-gray-400 hover:text-gray-600 dark:hover:text-white"
-                    )}
-                >
-                    <Icon size={14} />
-                </button>
-            ))}
+        <div className="flex items-center p-1 rounded-full bg-gray-100 dark:bg-gray-800">
+            <button
+                onClick={() => setTheme('light')}
+                className={cn("p-2 rounded-full transition-all", theme === 'light' ? "bg-white shadow text-yellow-500" : "text-gray-400 hover:text-gray-600")}
+                title="Light mode"
+            >
+                <Sun size={16} />
+            </button>
+            <button
+                onClick={() => setTheme('system')}
+                className={cn("p-2 rounded-full transition-all", theme === 'system' ? "bg-white dark:bg-gray-700 shadow text-blue-500" : "text-gray-400 hover:text-gray-600")}
+                title="System mode"
+            >
+                <Monitor size={16} />
+            </button>
+            <button
+                onClick={() => setTheme('dark')}
+                className={cn("p-2 rounded-full transition-all", theme === 'dark' ? "bg-gray-700 shadow text-purple-400" : "text-gray-400 hover:text-gray-600")}
+                title="Dark mode"
+            >
+                <Moon size={16} />
+            </button>
         </div>
     );
 }
@@ -145,28 +162,49 @@ function UserSearch() {
     useEffect(() => { const t = setTimeout(() => search(q), 200); return () => clearTimeout(t); }, [q, search]);
 
     return (
-        <div className="relative w-full max-w-sm mx-auto mb-6">
+        <div className="relative flex-1">
             <div className="relative">
                 <input type="text" value={q} onChange={e => { setQ(e.target.value); setShow(true); }} onFocus={() => setShow(true)} onBlur={() => setTimeout(() => setShow(false), 150)} placeholder="Search users..."
-                    className="w-full h-12 px-5 pl-12 rounded-2xl bg-white/70 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/20 text-[15px] text-gray-900 dark:text-white placeholder-gray-500 shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all" />
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                {loading && <Loader2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-500 animate-spin" />}
+                    className="w-full h-11 px-4 pl-10 rounded-full bg-gray-100 dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                {loading && <Loader2 size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-blue-500 animate-spin" />}
             </div>
             {show && results.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/30 overflow-hidden z-50">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
                     {results.map(u => (
                         <button key={u.username} onMouseDown={() => { setShow(false); setQ(''); router.push(`/${u.username}`); }}
-                            className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-white/50 dark:hover:bg-white/10 transition-all">
-                            {u.avatarUrl ? <img src={u.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover ring-2 ring-white/50" />
-                                : <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold">{u.username.substring(0, 2).toUpperCase()}</div>}
+                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">
+                            {u.avatarUrl ? <img src={u.avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover" />
+                                : <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">{u.username.substring(0, 2).toUpperCase()}</div>}
                             <div className="flex-1 text-left">
-                                <p className="text-[15px] font-medium text-gray-900 dark:text-white">{u.displayName || u.username}</p>
-                                <p className="text-[13px] text-gray-500">@{u.username} · {u.score} score</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{u.displayName || u.username}</p>
+                                <p className="text-xs text-gray-500">@{u.username} · {u.score}</p>
                             </div>
                         </button>
                     ))}
                 </div>
             )}
+        </div>
+    );
+}
+
+// ========== EMOJI PICKER ==========
+
+function EmojiPicker({ value, onChange, onClose }: { value: string; onChange: (emoji: string) => void; onClose: () => void }) {
+    return (
+        <div className="absolute top-full left-0 mt-2 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50">
+            <div className="grid grid-cols-5 gap-2 mb-3">
+                {EMOJI_OPTIONS.map(emoji => (
+                    <button key={emoji} onClick={() => onChange(emoji)}
+                        className={cn("w-9 h-9 rounded-lg text-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all", value === emoji && "bg-blue-100 dark:bg-blue-900")}>
+                        {emoji}
+                    </button>
+                ))}
+            </div>
+            <div className="flex gap-2">
+                <button onClick={onClose} className="flex-1 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">Cancel</button>
+                <button onClick={onClose} className="flex-1 h-8 rounded-lg bg-blue-500 text-sm text-white hover:bg-blue-600">Done</button>
+            </div>
         </div>
     );
 }
@@ -182,12 +220,15 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     const [isOwner, setIsOwner] = useState(false);
     const [myProfile, setMyProfile] = useState<EthosProfile | null>(null);
     const [telegramUsername, setTelegramUsername] = useState<string | null>(null);
+    const [telegramLoading, setTelegramLoading] = useState(false);
     const [customLinks, setCustomLinks] = useState<CustomLink[]>([]);
     const [newLinkTitle, setNewLinkTitle] = useState('');
     const [newLinkUrl, setNewLinkUrl] = useState('');
     const [newLinkEmoji, setNewLinkEmoji] = useState('🔗');
     const [showAddLink, setShowAddLink] = useState(false);
-    const [editingLink, setEditingLink] = useState<string | null>(null);
+    const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
+    const [editEmoji, setEditEmoji] = useState('');
+    const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
     const [draggedLink, setDraggedLink] = useState<string | null>(null);
 
     const wallet = getWallet(user);
@@ -198,8 +239,17 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     useEffect(() => { if (ready && authenticated && myProfile?.username && dp.username) { setIsOwner(myProfile.username.toLowerCase() === dp.username.toLowerCase()); } else if (ready && authenticated && !initialProfile && profile) { setIsOwner(true); } else setIsOwner(false); }, [ready, authenticated, myProfile, dp, initialProfile, profile]);
     useEffect(() => { if (profileId) { setSettings(loadSettings(profileId)); setCustomLinks(loadCustomLinks(profileId)); } }, [profileId]);
 
+    // Telegram username resolution
     const telegram = dp.linkedAccounts.find(a => a.service === 'telegram');
-    useEffect(() => { if (telegram?.username) { getTelegramUsername(telegram.username).then(setTelegramUsername); } }, [telegram?.username]);
+    useEffect(() => {
+        if (telegram?.username) {
+            setTelegramLoading(true);
+            getTelegramUsername(telegram.username).then(username => {
+                setTelegramUsername(username);
+                setTelegramLoading(false);
+            });
+        }
+    }, [telegram?.username]);
 
     const update = (s: ProfileSettings) => { setSettings(s); saveSettings(profileId, s); };
     const updateLinks = (links: CustomLink[]) => { setCustomLinks(links); saveCustomLinks(profileId, links); };
@@ -214,9 +264,24 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
 
     const removeLink = (id: string) => updateLinks(customLinks.filter(l => l.id !== id));
 
-    const updateLinkEmoji = (id: string, emoji: string) => {
-        updateLinks(customLinks.map(l => l.id === id ? { ...l, emoji } : l));
-        setEditingLink(null);
+    const startEditEmoji = (link: CustomLink) => {
+        setEditingLinkId(link.id);
+        setEditEmoji(link.emoji);
+        setShowEmojiPicker(link.id);
+    };
+
+    const saveEmojiEdit = () => {
+        if (editingLinkId && editEmoji) {
+            updateLinks(customLinks.map(l => l.id === editingLinkId ? { ...l, emoji: editEmoji } : l));
+        }
+        setEditingLinkId(null);
+        setShowEmojiPicker(null);
+    };
+
+    const cancelEmojiEdit = () => {
+        setEditingLinkId(null);
+        setShowEmojiPicker(null);
+        setEditEmoji('');
     };
 
     const handleDragStart = (id: string) => setDraggedLink(id);
@@ -236,66 +301,88 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     const farcaster = dp.linkedAccounts.find(a => a.service === 'farcaster');
     const canEdit = authenticated && isOwner;
 
-    const socialButtons = [
-        { key: 'x', show: settings.showX && dp.username, href: `https://x.com/${dp.username}`, Icon: XIcon, color: 'text-gray-700 dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black' },
-        { key: 'discord', show: settings.showDiscord && discord?.username, href: `https://discord.com/users/${discord?.username}`, Icon: DiscordIcon, color: 'text-[#5865F2] hover:bg-[#5865F2] hover:text-white' },
-        { key: 'farcaster', show: settings.showFarcaster && farcaster?.username, href: `https://warpcast.com/${farcaster?.username}`, Icon: FarcasterIcon, color: '' },
-        { key: 'telegram', show: settings.showTelegram && telegram?.username && telegramUsername, href: `https://t.me/${telegramUsername}`, Icon: TelegramIcon, color: 'text-[#0088CC] hover:bg-[#0088CC] hover:text-white' },
-        { key: 'debank', show: settings.showDeBank && dp.primaryAddress, href: `https://debank.com/profile/${dp.primaryAddress}`, Icon: DeBankIcon, color: '' },
-    ];
-
-    const orderedSocials = (settings.socialOrder || defaultSocialOrder).map(key => socialButtons.find(s => s.key === key)).filter(Boolean);
-
     return (
-        <div className="w-full max-w-[420px] mx-auto px-4">
-            {/* Header with Search and Theme */}
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex-1"><UserSearch /></div>
+        <div className="w-full max-w-md mx-auto px-4">
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-6">
+                <UserSearch />
                 <ThemeToggle />
             </div>
 
-            {/* Glass Card */}
-            <div className="relative bg-white/80 dark:bg-white/5 backdrop-blur-2xl rounded-[32px] shadow-[0_8px_60px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_60px_rgba(0,0,0,0.5)] border border-white/60 dark:border-white/10 overflow-hidden">
-                <div className="absolute -top-32 -right-32 w-64 h-64 bg-gradient-to-br from-blue-400/20 via-purple-400/20 to-pink-400/20 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-gradient-to-tr from-emerald-400/10 via-cyan-400/10 to-blue-400/10 rounded-full blur-3xl pointer-events-none" />
-
+            {/* Card */}
+            <div className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
                 {canEdit && (
                     <button onClick={() => setShowSettings(!showSettings)}
-                        className={cn("absolute top-5 right-5 z-10 w-10 h-10 rounded-2xl backdrop-blur-xl flex items-center justify-center transition-all",
-                            showSettings ? "bg-blue-500 text-white shadow-lg shadow-blue-500/30" : "bg-white/50 dark:bg-white/10 text-gray-500 hover:text-gray-900 dark:hover:text-white")}>
+                        className={cn("absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all",
+                            showSettings ? "bg-blue-500 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-white")}>
                         <Settings size={18} />
                     </button>
                 )}
 
-                <div className="relative p-10 flex flex-col items-center text-center">
-                    <div className="mb-6 relative">
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full blur-xl opacity-30 scale-110" />
-                        {dp.avatarUrl ? <img src={dp.avatarUrl} alt="" className="relative w-28 h-28 rounded-full object-cover ring-4 ring-white/80 dark:ring-white/20 shadow-2xl" />
-                            : <div className="relative w-28 h-28 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-4xl font-bold text-white ring-4 ring-white/80 dark:ring-white/20 shadow-2xl">{dp.username?.substring(0, 2).toUpperCase() || '??'}</div>}
+                <div className="p-8 flex flex-col items-center text-center">
+                    {/* Avatar */}
+                    <div className="mb-5">
+                        {dp.avatarUrl ? <img src={dp.avatarUrl} alt="" className="w-24 h-24 rounded-full object-cover ring-4 ring-gray-100 dark:ring-gray-800" />
+                            : <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-3xl font-bold text-white">{dp.username?.substring(0, 2).toUpperCase() || '??'}</div>}
                     </div>
 
-                    <h2 className="text-[26px] font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 dark:from-white dark:via-gray-200 dark:to-white bg-clip-text text-transparent">{dp.displayName || dp.username || 'Guest'}</h2>
-                    {dp.username && <p className="text-[15px] text-gray-500 mt-1 mb-6">@{dp.username}</p>}
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{dp.displayName || dp.username || 'Guest'}</h2>
+                    {dp.username && <p className="text-gray-500 mt-1 mb-5">@{dp.username}</p>}
 
-                    <div className="flex gap-12 mb-8">
+                    {/* Stats */}
+                    <div className="flex gap-10 mb-6">
                         <div className="text-center">
-                            <div className="text-[36px] font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{dp.score > 0 ? dp.score : '—'}</div>
-                            <div className="text-[13px] text-gray-500 font-medium uppercase tracking-wide">Trust</div>
+                            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{dp.score > 0 ? dp.score : '—'}</div>
+                            <div className="text-xs text-gray-500 uppercase tracking-wide">Trust</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-[36px] font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{dp.vouchCount || '—'}</div>
-                            <div className="text-[13px] text-gray-500 font-medium uppercase tracking-wide">Vouches</div>
+                            <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{dp.vouchCount || '—'}</div>
+                            <div className="text-xs text-gray-500 uppercase tracking-wide">Vouches</div>
                         </div>
                     </div>
 
                     {/* Social Icons */}
                     <div className="flex gap-3 mb-6">
-                        {orderedSocials.map(s => s && s.show && (
-                            <a key={s.key} href={s.href} target="_blank" rel="noopener noreferrer"
-                                className={cn("w-12 h-12 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-xl flex items-center justify-center transition-all shadow-lg overflow-hidden hover:scale-105", s.color)}>
-                                <s.Icon />
+                        {settings.showX && dp.username && (
+                            <a href={`https://x.com/${dp.username}`} target="_blank" rel="noopener noreferrer"
+                                className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-700 dark:text-white hover:bg-black hover:text-white transition-all">
+                                <XIcon size={18} />
                             </a>
-                        ))}
+                        )}
+                        {settings.showDiscord && discord?.username && (
+                            <a href={`https://discord.com/users/${discord.username}`} target="_blank" rel="noopener noreferrer"
+                                className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-[#5865F2] hover:bg-[#5865F2] hover:text-white transition-all">
+                                <DiscordIcon />
+                            </a>
+                        )}
+                        {settings.showFarcaster && farcaster?.username && (
+                            <a href={`https://warpcast.com/${farcaster.username}`} target="_blank" rel="noopener noreferrer"
+                                className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-[#855DCD] transition-all overflow-hidden">
+                                <FarcasterIcon />
+                            </a>
+                        )}
+                        {settings.showTelegram && telegram?.username && (
+                            telegramUsername ? (
+                                <a href={`https://t.me/${telegramUsername}`} target="_blank" rel="noopener noreferrer"
+                                    className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-[#0088CC] transition-all overflow-hidden">
+                                    <TelegramIcon />
+                                </a>
+                            ) : telegramLoading ? (
+                                <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                    <Loader2 size={18} className="text-[#0088CC] animate-spin" />
+                                </div>
+                            ) : (
+                                <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center opacity-50" title="Telegram connected">
+                                    <TelegramIcon />
+                                </div>
+                            )
+                        )}
+                        {settings.showDeBank && dp.primaryAddress && (
+                            <a href={`https://debank.com/profile/${dp.primaryAddress}`} target="_blank" rel="noopener noreferrer"
+                                className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-[#FE815F] transition-all overflow-hidden">
+                                <DeBankIcon />
+                            </a>
+                        )}
                     </div>
 
                     {/* Custom Links */}
@@ -303,64 +390,78 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         <div className="w-full space-y-2 mb-6">
                             {customLinks.map(link => (
                                 <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer"
-                                    className="flex items-center gap-3 w-full px-5 py-3.5 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-xl hover:bg-white dark:hover:bg-white/20 transition-all shadow-md group">
+                                    className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all group">
                                     <span className="text-xl">{link.emoji}</span>
-                                    <span className="flex-1 text-[15px] font-medium text-gray-800 dark:text-white">{link.title}</span>
+                                    <span className="flex-1 text-sm font-medium text-gray-800 dark:text-white">{link.title}</span>
                                     <ExternalLink size={14} className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-white" />
                                 </a>
                             ))}
                         </div>
                     )}
 
+                    {/* Copy Button */}
                     <button onClick={copy}
-                        className={cn("w-full h-14 rounded-2xl font-semibold text-[15px] transition-all flex items-center justify-center gap-2.5",
-                            copied ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30" : "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 active:scale-[0.98]")}>
+                        className={cn("w-full h-12 rounded-xl font-medium transition-all flex items-center justify-center gap-2",
+                            copied ? "bg-green-500 text-white" : "bg-blue-500 text-white hover:bg-blue-600")}>
                         {copied ? <><Check size={18} /> Copied!</> : <><Copy size={18} /> Copy Profile Link</>}
                     </button>
 
                     {dp.username && (
                         <a href={`https://app.ethos.network/profile/x/${dp.username}`} target="_blank" rel="noopener noreferrer"
-                            className="mt-5 text-[13px] text-blue-500 hover:text-blue-600 flex items-center gap-1.5 font-medium">
-                            View on Ethos <ExternalLink size={13} />
+                            className="mt-4 text-sm text-blue-500 hover:text-blue-600 flex items-center gap-1">
+                            View on Ethos <ExternalLink size={12} />
                         </a>
                     )}
                 </div>
 
                 {/* Settings Panel */}
                 {showSettings && canEdit && (
-                    <div className="border-t border-white/30 dark:border-white/10 p-6 bg-white/50 dark:bg-white/5 backdrop-blur-xl space-y-6">
+                    <div className="border-t border-gray-200 dark:border-gray-800 p-6 bg-gray-50 dark:bg-gray-900/50 space-y-6">
+                        {/* Social Toggles */}
                         <div>
-                            <p className="text-[13px] font-semibold text-gray-500 mb-3 uppercase tracking-wider">Show/Hide Socials</p>
+                            <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wider">Show/Hide</p>
                             <div className="grid grid-cols-2 gap-2">
-                                {(['showX', 'showDiscord', 'showFarcaster', 'showTelegram', 'showDeBank'] as const).map((key) => {
-                                    const icons = { showX: XIcon, showDiscord: DiscordIcon, showFarcaster: FarcasterIcon, showTelegram: TelegramIcon, showDeBank: DeBankIcon };
-                                    const labels = { showX: 'X', showDiscord: 'Discord', showFarcaster: 'Farcaster', showTelegram: 'Telegram', showDeBank: 'DeBank' };
-                                    const Icon = icons[key];
-                                    return (
-                                        <label key={key} className="flex items-center gap-2.5 p-3 rounded-xl bg-white/70 dark:bg-white/10 cursor-pointer hover:bg-white dark:hover:bg-white/20 transition-all text-[13px]">
-                                            <input type="checkbox" checked={settings[key]} onChange={e => update({ ...settings, [key]: e.target.checked })} className="rounded border-gray-300 text-blue-500 w-4 h-4" />
-                                            <Icon />
-                                            <span className="text-gray-700 dark:text-white font-medium">{labels[key]}</span>
-                                        </label>
-                                    );
-                                })}
+                                {([
+                                    ['showX', 'X', XIcon],
+                                    ['showDiscord', 'Discord', DiscordIcon],
+                                    ['showFarcaster', 'Farcaster', FarcasterIcon],
+                                    ['showTelegram', 'Telegram', TelegramIcon],
+                                    ['showDeBank', 'DeBank', DeBankIcon],
+                                ] as const).map(([key, label, Icon]) => (
+                                    <label key={key} className="flex items-center gap-2 p-3 rounded-xl bg-white dark:bg-gray-800 cursor-pointer text-sm">
+                                        <input type="checkbox" checked={settings[key]} onChange={e => update({ ...settings, [key]: e.target.checked })} className="rounded text-blue-500" />
+                                        <Icon />
+                                        <span className="text-gray-700 dark:text-white">{label}</span>
+                                    </label>
+                                ))}
                             </div>
                         </div>
 
+                        {/* Custom Links */}
                         <div>
                             <div className="flex items-center justify-between mb-3">
-                                <p className="text-[13px] font-semibold text-gray-500 uppercase tracking-wider">Custom Links</p>
-                                <button onClick={() => setShowAddLink(!showAddLink)} className="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center gap-1"><Plus size={14} /> Add</button>
+                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Custom Links</p>
+                                <button onClick={() => setShowAddLink(!showAddLink)} className="text-blue-500 text-sm font-medium flex items-center gap-1">
+                                    <Plus size={14} /> Add
+                                </button>
                             </div>
 
                             {showAddLink && (
-                                <div className="space-y-2 mb-4 p-4 rounded-xl bg-white/70 dark:bg-white/10">
+                                <div className="space-y-2 mb-4 p-4 rounded-xl bg-white dark:bg-gray-800">
                                     <div className="flex gap-2">
-                                        <input type="text" value={newLinkEmoji} onChange={e => setNewLinkEmoji(e.target.value)} placeholder="🔗" maxLength={2} className="w-12 h-10 text-center rounded-lg bg-white dark:bg-white/20 border border-gray-200 dark:border-white/10 text-lg" />
-                                        <input type="text" value={newLinkTitle} onChange={e => setNewLinkTitle(e.target.value)} placeholder="Title" className="flex-1 h-10 px-3 rounded-lg bg-white dark:bg-white/20 border border-gray-200 dark:border-white/10 text-sm" />
+                                        <div className="relative">
+                                            <button onClick={() => setShowEmojiPicker('new')} className="w-12 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 text-xl flex items-center justify-center">{newLinkEmoji}</button>
+                                            {showEmojiPicker === 'new' && (
+                                                <EmojiPicker value={newLinkEmoji} onChange={setNewLinkEmoji} onClose={() => setShowEmojiPicker(null)} />
+                                            )}
+                                        </div>
+                                        <input type="text" value={newLinkTitle} onChange={e => setNewLinkTitle(e.target.value)} placeholder="Title" className="flex-1 h-10 px-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm" />
                                     </div>
-                                    <input type="text" value={newLinkUrl} onChange={e => setNewLinkUrl(e.target.value)} placeholder="https://..." className="w-full h-10 px-3 rounded-lg bg-white dark:bg-white/20 border border-gray-200 dark:border-white/10 text-sm" />
-                                    <button onClick={addLink} className="w-full h-10 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600">Add Link</button>
+                                    <input type="text" value={newLinkUrl} onChange={e => setNewLinkUrl(e.target.value)} placeholder="https://..." className="w-full h-10 px-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm" />
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setShowAddLink(false)} className="flex-1 h-10 rounded-lg bg-gray-200 dark:bg-gray-600 text-sm">Cancel</button>
+                                        <button onClick={addLink} className="flex-1 h-10 rounded-lg bg-blue-500 text-white text-sm">Save</button>
+                                    </div>
                                 </div>
                             )}
 
@@ -368,16 +469,15 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                                 <div className="space-y-2">
                                     {customLinks.map(link => (
                                         <div key={link.id} draggable onDragStart={() => handleDragStart(link.id)} onDragOver={e => handleDragOver(e, link.id)} onDragEnd={handleDragEnd}
-                                            className={cn("flex items-center gap-2 p-3 rounded-xl bg-white/70 dark:bg-white/10 cursor-grab transition-all", draggedLink === link.id && "opacity-50 scale-95")}>
+                                            className={cn("flex items-center gap-2 p-3 rounded-xl bg-white dark:bg-gray-800 cursor-grab", draggedLink === link.id && "opacity-50")}>
                                             <GripVertical size={14} className="text-gray-400" />
-                                            {editingLink === link.id ? (
-                                                <input type="text" value={link.emoji} onChange={e => updateLinkEmoji(link.id, e.target.value)} onBlur={() => setEditingLink(null)} autoFocus maxLength={2}
-                                                    className="w-8 h-8 text-center bg-white dark:bg-white/20 rounded border text-lg" />
-                                            ) : (
-                                                <button onClick={() => setEditingLink(link.id)} className="text-xl hover:scale-110 transition-transform">{link.emoji}</button>
-                                            )}
+                                            <div className="relative">
+                                                <button onClick={() => startEditEmoji(link)} className="text-xl hover:scale-110 transition-transform">{link.emoji}</button>
+                                                {showEmojiPicker === link.id && (
+                                                    <EmojiPicker value={editEmoji} onChange={setEditEmoji} onClose={saveEmojiEdit} />
+                                                )}
+                                            </div>
                                             <span className="flex-1 text-sm text-gray-700 dark:text-white truncate">{link.title}</span>
-                                            <button onClick={() => setEditingLink(link.id)} className="text-gray-400 hover:text-blue-500 p-1"><Pencil size={12} /></button>
                                             <button onClick={() => removeLink(link.id)} className="text-red-500 hover:text-red-600 p-1"><Trash2 size={14} /></button>
                                         </div>
                                     ))}
@@ -388,12 +488,13 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                 )}
             </div>
 
-            <div className="mt-8 flex flex-col items-center gap-1.5">
+            {/* Footer */}
+            <div className="mt-6 flex flex-col items-center gap-1">
                 <div className="flex items-center gap-2">
-                    <span className="text-[12px] text-gray-400">Created by 0xarshia.eth</span>
-                    <a href="https://x.com/0xarshia" target="_blank" rel="noopener noreferrer" className="w-5 h-5 rounded-lg bg-white/50 dark:bg-white/10 flex items-center justify-center text-gray-600 dark:text-white hover:bg-black hover:text-white transition-all"><XIcon size={9} /></a>
+                    <span className="text-xs text-gray-400">Created by 0xarshia.eth</span>
+                    <a href="https://x.com/0xarshia" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 dark:hover:text-white"><XIcon size={10} /></a>
                 </div>
-                <p className="text-[11px] text-gray-400">Powered by <a href="https://ethos.network" target="_blank" className="text-blue-500 hover:underline font-medium">Ethos</a></p>
+                <p className="text-xs text-gray-400">Powered by <a href="https://ethos.network" target="_blank" className="text-blue-500 hover:underline">Ethos</a></p>
             </div>
         </div>
     );
