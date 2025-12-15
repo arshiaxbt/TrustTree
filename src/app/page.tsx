@@ -109,17 +109,31 @@ export default function Home() {
         )}
 
         {/* Footer */}
-        <div className="mt-8 flex items-center justify-center gap-2">
-          <span className="text-xs text-gray-400 dark:text-gray-500">Created by</span>
-          <a
-            href="https://x.com/0xarshia"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all text-xs"
-          >
-            <Twitter size={12} />
-            0xarshia.eth
-          </a>
+        <div className="mt-8 space-y-2">
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-xs text-gray-400 dark:text-gray-500">Created by 0xarshia.eth</span>
+            <span className="text-gray-300 dark:text-gray-600">|</span>
+            <a
+              href="https://x.com/0xarshia"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+              title="@0xarshia on X"
+            >
+              <Twitter size={14} />
+            </a>
+          </div>
+          <div className="flex items-center justify-center gap-1.5">
+            <span className="text-[10px] text-gray-400 dark:text-gray-600">Powered by</span>
+            <a
+              href="https://ethos.network"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-medium text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300"
+            >
+              Ethos
+            </a>
+          </div>
         </div>
       </div>
     </main>
