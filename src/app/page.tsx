@@ -92,15 +92,21 @@ export default function Home() {
         {!authenticated && (
           <div className="w-full max-w-md mx-auto p-8 rounded-3xl bg-white/60 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl">
             <div className="text-center space-y-6">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 mx-auto flex items-center justify-center shadow-lg">
-                <span className="text-2xl">🌲</span>
+              <div className="mx-auto flex items-center justify-center">
+                <img
+                  src="https://thick-emerald-possum.myfilebase.com/ipfs/QmVsumpPwi4ZpCfDrz6Pm7TkhGgt3GLvEi81aVcrr3iRix"
+                  alt="TrustTree"
+                  className="w-20 h-20 object-contain drop-shadow-lg"
+                />
               </div>
-              <div className="space-y-2">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  View Your Trust Score
+              <div className="space-y-3">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Your All-in-One On-Chain Bio
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Connect with Ethos to see your reputation score, vouches, and more.
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                  Unify your digital identity. Show off your reputation score, social links, and vouches in one beautiful profile.
+                  <br />
+                  <span className="text-xs font-medium text-indigo-500 mt-2 block">Powered by Ethos</span>
                 </p>
               </div>
               <LoginButton />
