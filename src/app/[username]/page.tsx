@@ -145,8 +145,14 @@ export default function UserProfilePage() {
     }
 
     return (
-        <main className="min-h-screen py-16 px-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-black">
-            <div className="max-w-2xl mx-auto">
+        <main className="min-h-screen py-16 px-4 bg-white dark:bg-black/95 relative overflow-hidden">
+
+            {/* Background Blobs */}
+            <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob dark:bg-purple-900/30 dark:mix-blend-normal"></div>
+            <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000 dark:bg-yellow-900/30 dark:mix-blend-normal"></div>
+            <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000 dark:bg-pink-900/30 dark:mix-blend-normal"></div>
+
+            <div className="max-w-2xl mx-auto relative z-10">
                 {/* Header with Login */}
                 <div className="flex justify-end mb-8">
                     <LoginButton />

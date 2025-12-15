@@ -33,6 +33,12 @@ const TelegramIcon = () => (
     </svg>
 );
 
+const GithubIcon = ({ size = 20 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.17 22 16.42 22 12A10 10 0 0 0 12 2z" />
+    </svg>
+);
+
 // Logo URLs - user provided IPFS links
 const FARCASTER_LOGO = "https://thick-emerald-possum.myfilebase.com/ipfs/QmdoPVt3qcqi9XJcdhEQXUaXu6NvFPjsXzxmjvvUdUQoqP";
 const DEBANK_LOGO = "https://thick-emerald-possum.myfilebase.com/ipfs/QmS1TQt75xygZ41BYfNZfXiNwFzTcjcP2YbfjPCypAzHDC";
@@ -130,7 +136,7 @@ function UserSearch() {
         <div className="relative flex-1">
             <div className="relative">
                 <input type="text" value={q} onChange={e => { setQ(e.target.value); setShow(true); }} onFocus={() => setShow(true)} onBlur={() => setTimeout(() => setShow(false), 200)} placeholder="Search users..."
-                    className="w-full h-11 px-4 pl-10 rounded-full bg-gray-100 dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+                    className="w-full h-11 px-4 pl-10 rounded-full bg-white/50 dark:bg-black/50 backdrop-blur-md border border-white/20 dark:border-white/10 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" />
                 <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 {isLoading && <Loader2 size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-blue-500 animate-spin" />}
             </div>
@@ -235,7 +241,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                 <ThemeToggle />
             </div>
 
-            <div className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+            <div className="relative bg-white/60 dark:bg-black/40 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-white/10 overflow-hidden">
                 {canEdit && (
                     <button onClick={() => setShowSettings(!showSettings)}
                         className={cn("absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all",
@@ -279,9 +285,9 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                             </a>
                         )}
                         {settings.showFarcaster && farcaster?.username && (
-                            <a href={`https://warpcast.com/${farcaster.username}`} target="_blank" rel="noopener noreferrer"
-                                className={cn(btnBase, "hover:scale-105")}>
-                                <img src={FARCASTER_LOGO} alt="Farcaster" className="w-full h-full object-cover" />
+                            <a href={`https://farcaster.xyz/~/profiles/${farcaster.username}`} target="_blank" rel="noopener noreferrer"
+                                className={cn(btnBase, btnBg, "text-purple-800 hover:text-white hover:bg-[#855DCD]")}>
+                                <img src={FARCASTER_LOGO} alt="Farcaster" className="w-5 h-5 object-contain" />
                             </a>
                         )}
                         {settings.showTelegram && telegram?.username && (
@@ -302,8 +308,8 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         )}
                         {settings.showDeBank && dp.primaryAddress && (
                             <a href={`https://debank.com/profile/${dp.primaryAddress}`} target="_blank" rel="noopener noreferrer"
-                                className={cn(btnBase, "hover:scale-105")}>
-                                <img src={DEBANK_LOGO} alt="DeBank" className="w-full h-full object-cover" />
+                                className={cn(btnBase, btnBg, "hover:bg-[#FF6B4A] hover:text-white")}>
+                                <img src={DEBANK_LOGO} alt="DeBank" className="w-5 h-5 object-contain" />
                             </a>
                         )}
                     </div>
@@ -406,8 +412,9 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
 
             <div className="mt-6 flex flex-col items-center gap-1">
                 <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400">Created by 0xarshia.eth</span>
-                    <a href="https://x.com/0xarshia" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 dark:hover:text-white"><XIcon size={10} /></a>
+                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Created by 0xarshia.eth</span>
+                    <a href="https://x.com/0xarshia" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 dark:hover:text-white"><XIcon size={14} /></a>
+                    <a href="https://github.com/arshiaxbt/TrustTree" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 dark:hover:text-white"><GithubIcon size={14} /></a>
                 </div>
                 <p className="text-xs text-gray-400">Powered by <a href="https://ethos.network" target="_blank" className="text-blue-500 hover:underline">Ethos</a></p>
             </div>
