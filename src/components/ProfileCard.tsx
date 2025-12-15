@@ -2,13 +2,12 @@
 
 import { EthosProfile, getEthosData } from '@/lib/ethos';
 import { usePrivy } from '@privy-io/react-auth';
-import { Copy, Settings, Search, Check, ExternalLink, Loader2, Plus, Trash2, GripVertical, Sun, Moon, Monitor, Pencil, X } from 'lucide-react';
+import { Copy, Settings, Search, Check, ExternalLink, Loader2, Plus, Trash2, GripVertical, Sun, Moon, Monitor, Pencil } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useRouter } from 'next/navigation';
 import { useTheme } from './ThemeProvider';
-import Image from 'next/image';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -23,23 +22,22 @@ const XIcon = ({ size = 16 }: { size?: number }) => (
 );
 
 const DiscordIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 127.14 96.36" fill="currentColor">
+    <svg width="20" height="20" viewBox="0 0 127.14 96.36" fill="currentColor">
         <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z" />
     </svg>
 );
 
 const TelegramIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
+    <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
         <circle cx="24" cy="24" r="24" fill="#0088CC" />
         <path d="M10.9 23.3c6.5-2.8 10.8-4.7 13-5.6 6.2-2.6 7.5-3 8.3-3 .2 0 .6 0 .9.3.2.2.3.5.3.7v.6c-.2 2.5-1.2 8.5-1.7 11.3-.2 1.2-.6 1.6-1.1 1.6-.9.1-1.6-.6-2.5-1.2-1.4-.9-2.2-1.5-3.5-2.4-1.5-1-.6-1.6.3-2.5.2-.2 4.2-3.9 4.3-4.2 0-.1 0-.2-.1-.3-.1 0-.2 0-.3 0-.1 0-2.3 1.5-6.6 4.4-.6.4-1.2.6-1.7.6-.6 0-1.6-.3-2.4-.6-1-.3-1.8-.5-1.7-1 0-.3.4-.6 1.1-.9z" fill="white" />
     </svg>
 );
 
-// Logo URLs provided by user
+// Logo URLs
 const FARCASTER_LOGO = "https://thick-emerald-possum.myfilebase.com/ipfs/QmUV7JqLzNxSYFyogiguvZdSApzojtaU1Gu3BqjRJVVAvo";
 const DEBANK_LOGO = "https://thick-emerald-possum.myfilebase.com/ipfs/QmRSmtJMJzh542JP94725z7EdTWz3g1DUuAuRhAMtFB2Mf";
 
-// Common emojis for picker
 const EMOJI_OPTIONS = ['🔗', '🌐', '📧', '💼', '🎮', '🎵', '📸', '🎨', '💰', '🛒', '📱', '💻', '🎬', '📚', '✨', '🚀', '💎', '🔥', '⚡', '🌟'];
 
 // ========== INTERFACES ==========
@@ -80,9 +78,13 @@ function getWallet(user: ReturnType<typeof usePrivy>['user']): string | null {
 async function getTelegramUsername(userId: string): Promise<string | null> {
     try {
         const res = await fetch(`/api/telegram?userId=${userId}`);
-        if (res.ok) { const data = await res.json(); return data.username || null; }
-    } catch { }
-    return null;
+        const data = await res.json();
+        console.log('[Telegram] API response:', data);
+        return data.username || null;
+    } catch (e) {
+        console.error('[Telegram] Error:', e);
+        return null;
+    }
 }
 
 // ========== THEME TOGGLE ==========
@@ -105,49 +107,56 @@ interface SearchResult { username: string; displayName?: string; avatarUrl?: str
 function UserSearch() {
     const [q, setQ] = useState('');
     const [results, setResults] = useState<SearchResult[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [show, setShow] = useState(false);
     const router = useRouter();
 
-    const search = useCallback(async (query: string) => {
-        if (query.length < 2) {
-            setResults([]);
-            setLoading(false);
-            return;
-        }
-        setLoading(true);
-        try {
-            const res = await fetch(`https://api.ethos.network/api/v2/users/search?query=${encodeURIComponent(query)}&limit=5`, { headers: { 'X-Ethos-Client': 'trust-tree' } });
-            if (res.ok) {
-                const data = await res.json();
-                setResults((data.values || []).slice(0, 5).map((u: { username?: string; displayName?: string; avatarUrl?: string; score?: number }) => ({
-                    username: u.username || '', displayName: u.displayName, avatarUrl: u.avatarUrl, score: u.score || 0,
-                })).filter((u: SearchResult) => u.username));
-            }
-        } catch { }
-        finally {
-            setLoading(false);
-        }
-    }, []);
-
     useEffect(() => {
         if (q.length < 2) {
-            setLoading(false);
+            setIsLoading(false);
             setResults([]);
             return;
         }
-        setLoading(true);
-        const t = setTimeout(() => search(q), 300);
-        return () => clearTimeout(t);
-    }, [q, search]);
+
+        setIsLoading(true);
+        const controller = new AbortController();
+
+        const timeoutId = setTimeout(async () => {
+            try {
+                const res = await fetch(
+                    `https://api.ethos.network/api/v2/users/search?query=${encodeURIComponent(q)}&limit=5`,
+                    { headers: { 'X-Ethos-Client': 'trust-tree' }, signal: controller.signal }
+                );
+                if (res.ok) {
+                    const data = await res.json();
+                    setResults((data.values || []).slice(0, 5).map((u: { username?: string; displayName?: string; avatarUrl?: string; score?: number }) => ({
+                        username: u.username || '', displayName: u.displayName, avatarUrl: u.avatarUrl, score: u.score || 0,
+                    })).filter((u: SearchResult) => u.username));
+                }
+            } catch (e) {
+                if (e instanceof Error && e.name !== 'AbortError') console.error(e);
+            } finally {
+                setIsLoading(false);
+            }
+        }, 300);
+
+        return () => {
+            clearTimeout(timeoutId);
+            controller.abort();
+        };
+    }, [q]);
 
     return (
         <div className="relative flex-1">
             <div className="relative">
-                <input type="text" value={q} onChange={e => { setQ(e.target.value); setShow(true); }} onFocus={() => setShow(true)} onBlur={() => setTimeout(() => setShow(false), 150)} placeholder="Search users..."
+                <input type="text" value={q} onChange={e => { setQ(e.target.value); setShow(true); }} onFocus={() => setShow(true)} onBlur={() => setTimeout(() => setShow(false), 200)} placeholder="Search users..."
                     className="w-full h-11 px-4 pl-10 rounded-full bg-gray-100 dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
                 <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                {loading && <Loader2 size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-blue-500 animate-spin" />}
+                {isLoading && (
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                        <Loader2 size={16} className="text-blue-500 animate-spin" />
+                    </div>
+                )}
             </div>
             {show && results.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
@@ -182,7 +191,6 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     const [telegramLoading, setTelegramLoading] = useState(false);
     const [customLinks, setCustomLinks] = useState<CustomLink[]>([]);
 
-    // Add/Edit link state
     const [showLinkForm, setShowLinkForm] = useState(false);
     const [editingLink, setEditingLink] = useState<CustomLink | null>(null);
     const [formEmoji, setFormEmoji] = useState('🔗');
@@ -203,7 +211,10 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     useEffect(() => {
         if (telegram?.username) {
             setTelegramLoading(true);
-            getTelegramUsername(telegram.username).then(username => { setTelegramUsername(username); setTelegramLoading(false); });
+            getTelegramUsername(telegram.username).then(username => {
+                setTelegramUsername(username);
+                setTelegramLoading(false);
+            });
         }
     }, [telegram?.username]);
 
@@ -211,41 +222,18 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     const updateLinks = (links: CustomLink[]) => { setCustomLinks(links); saveCustomLinks(profileId, links); };
     const copy = () => { navigator.clipboard.writeText(dp.username ? `${window.location.origin}/${dp.username}` : window.location.href); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
-    const openAddForm = () => {
-        setEditingLink(null);
-        setFormEmoji('🔗');
-        setFormTitle('');
-        setFormUrl('');
-        setShowLinkForm(true);
-    };
-
-    const openEditForm = (link: CustomLink) => {
-        setEditingLink(link);
-        setFormEmoji(link.emoji);
-        setFormTitle(link.title);
-        setFormUrl(link.url);
-        setShowLinkForm(true);
-    };
+    const openAddForm = () => { setEditingLink(null); setFormEmoji('🔗'); setFormTitle(''); setFormUrl(''); setShowLinkForm(true); };
+    const openEditForm = (link: CustomLink) => { setEditingLink(link); setFormEmoji(link.emoji); setFormTitle(link.title); setFormUrl(link.url); setShowLinkForm(true); };
 
     const saveLink = () => {
         if (!formTitle || !formUrl) return;
         const url = formUrl.startsWith('http') ? formUrl : `https://${formUrl}`;
-
-        if (editingLink) {
-            updateLinks(customLinks.map(l => l.id === editingLink.id ? { ...l, emoji: formEmoji, title: formTitle, url } : l));
-        } else {
-            updateLinks([...customLinks, { id: Date.now().toString(), emoji: formEmoji, title: formTitle, url }]);
-        }
-        setShowLinkForm(false);
-        setShowEmojiPicker(false);
+        if (editingLink) { updateLinks(customLinks.map(l => l.id === editingLink.id ? { ...l, emoji: formEmoji, title: formTitle, url } : l)); }
+        else { updateLinks([...customLinks, { id: Date.now().toString(), emoji: formEmoji, title: formTitle, url }]); }
+        setShowLinkForm(false); setShowEmojiPicker(false);
     };
 
-    const cancelForm = () => {
-        setShowLinkForm(false);
-        setShowEmojiPicker(false);
-        setEditingLink(null);
-    };
-
+    const cancelForm = () => { setShowLinkForm(false); setShowEmojiPicker(false); setEditingLink(null); };
     const removeLink = (id: string) => updateLinks(customLinks.filter(l => l.id !== id));
 
     const handleDragStart = (id: string) => setDraggedLink(id);
@@ -265,15 +253,16 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     const farcaster = dp.linkedAccounts.find(a => a.service === 'farcaster');
     const canEdit = authenticated && isOwner;
 
+    // Button style for all social icons
+    const socialBtnClass = "w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center transition-all overflow-hidden";
+
     return (
         <div className="w-full max-w-md mx-auto px-4">
-            {/* Header */}
             <div className="flex items-center gap-3 mb-6">
                 <UserSearch />
                 <ThemeToggle />
             </div>
 
-            {/* Card */}
             <div className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
                 {canEdit && (
                     <button onClick={() => setShowSettings(!showSettings)}
@@ -284,7 +273,6 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                 )}
 
                 <div className="p-8 flex flex-col items-center text-center">
-                    {/* Avatar */}
                     <div className="mb-5">
                         {dp.avatarUrl ? <img src={dp.avatarUrl} alt="" className="w-24 h-24 rounded-full object-cover ring-4 ring-gray-100 dark:ring-gray-800" />
                             : <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-3xl font-bold text-white">{dp.username?.substring(0, 2).toUpperCase() || '??'}</div>}
@@ -293,7 +281,6 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{dp.displayName || dp.username || 'Guest'}</h2>
                     {dp.username && <p className="text-gray-500 mt-1 mb-5">@{dp.username}</p>}
 
-                    {/* Stats */}
                     <div className="flex gap-10 mb-6">
                         <div className="text-center">
                             <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{dp.score > 0 ? dp.score : '—'}</div>
@@ -305,51 +292,50 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         </div>
                     </div>
 
-                    {/* Social Icons */}
+                    {/* Social Icons - All Circular */}
                     <div className="flex gap-3 mb-6">
                         {settings.showX && dp.username && (
                             <a href={`https://x.com/${dp.username}`} target="_blank" rel="noopener noreferrer"
-                                className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-700 dark:text-white hover:bg-black hover:text-white transition-all">
+                                className={cn(socialBtnClass, "text-gray-700 dark:text-white hover:bg-black hover:text-white")}>
                                 <XIcon size={18} />
                             </a>
                         )}
                         {settings.showDiscord && discord?.username && (
                             <a href={`https://discord.com/users/${discord.username}`} target="_blank" rel="noopener noreferrer"
-                                className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-[#5865F2] hover:bg-[#5865F2] hover:text-white transition-all">
+                                className={cn(socialBtnClass, "text-[#5865F2] hover:bg-[#5865F2] hover:text-white")}>
                                 <DiscordIcon />
                             </a>
                         )}
                         {settings.showFarcaster && farcaster?.username && (
                             <a href={`https://warpcast.com/${farcaster.username}`} target="_blank" rel="noopener noreferrer"
-                                className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-[#855DCD] transition-all overflow-hidden">
-                                <img src={FARCASTER_LOGO} alt="Farcaster" className="w-6 h-6" />
+                                className={cn(socialBtnClass, "hover:bg-[#855DCD] p-0")}>
+                                <img src={FARCASTER_LOGO} alt="Farcaster" className="w-full h-full rounded-full object-cover" />
                             </a>
                         )}
                         {settings.showTelegram && telegram?.username && (
                             telegramUsername ? (
                                 <a href={`https://t.me/${telegramUsername}`} target="_blank" rel="noopener noreferrer"
-                                    className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-[#0088CC] transition-all overflow-hidden">
+                                    className={cn(socialBtnClass, "hover:bg-[#0088CC] p-0")}>
                                     <TelegramIcon />
                                 </a>
                             ) : telegramLoading ? (
-                                <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                <div className={socialBtnClass}>
                                     <Loader2 size={18} className="text-[#0088CC] animate-spin" />
                                 </div>
                             ) : (
-                                <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center opacity-50">
+                                <div className={cn(socialBtnClass, "opacity-50 cursor-not-allowed")} title="Telegram ID (username unavailable)">
                                     <TelegramIcon />
                                 </div>
                             )
                         )}
                         {settings.showDeBank && dp.primaryAddress && (
                             <a href={`https://debank.com/profile/${dp.primaryAddress}`} target="_blank" rel="noopener noreferrer"
-                                className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-[#FE815F] transition-all overflow-hidden">
-                                <img src={DEBANK_LOGO} alt="DeBank" className="w-6 h-6" />
+                                className={cn(socialBtnClass, "hover:bg-[#FE815F] p-0")}>
+                                <img src={DEBANK_LOGO} alt="DeBank" className="w-full h-full rounded-full object-cover" />
                             </a>
                         )}
                     </div>
 
-                    {/* Custom Links */}
                     {customLinks.length > 0 && (
                         <div className="w-full space-y-2 mb-6">
                             {customLinks.map(link => (
@@ -363,7 +349,6 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         </div>
                     )}
 
-                    {/* Copy Button */}
                     <button onClick={copy}
                         className={cn("w-full h-12 rounded-xl font-medium transition-all flex items-center justify-center gap-2",
                             copied ? "bg-green-500 text-white" : "bg-blue-500 text-white hover:bg-blue-600")}>
@@ -378,10 +363,8 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                     )}
                 </div>
 
-                {/* Settings Panel */}
                 {showSettings && canEdit && (
                     <div className="border-t border-gray-200 dark:border-gray-800 p-6 bg-gray-50 dark:bg-gray-900/50 space-y-6">
-                        {/* Social Toggles */}
                         <div>
                             <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wider">Show/Hide</p>
                             <div className="grid grid-cols-2 gap-2">
@@ -397,34 +380,24 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                             </div>
                         </div>
 
-                        {/* Custom Links */}
                         <div>
                             <div className="flex items-center justify-between mb-3">
                                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Custom Links</p>
-                                <button onClick={openAddForm} className="text-blue-500 text-sm font-medium flex items-center gap-1">
-                                    <Plus size={14} /> Add
-                                </button>
+                                <button onClick={openAddForm} className="text-blue-500 text-sm font-medium flex items-center gap-1"><Plus size={14} /> Add</button>
                             </div>
 
-                            {/* Add/Edit Form */}
                             {showLinkForm && (
                                 <div className="mb-4 p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                                     <p className="text-xs font-medium text-gray-500 mb-3">{editingLink ? 'Edit Link' : 'Add New Link'}</p>
-
                                     <div className="flex gap-2 mb-2">
-                                        {/* Emoji Button */}
                                         <div className="relative">
-                                            <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="w-12 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 text-xl flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600">
-                                                {formEmoji}
-                                            </button>
+                                            <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="w-12 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 text-xl flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600">{formEmoji}</button>
                                             {showEmojiPicker && (
                                                 <div className="absolute top-12 left-0 p-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 w-48">
                                                     <div className="grid grid-cols-5 gap-1">
                                                         {EMOJI_OPTIONS.map(e => (
                                                             <button key={e} onClick={() => { setFormEmoji(e); setShowEmojiPicker(false); }}
-                                                                className={cn("w-8 h-8 rounded text-lg hover:bg-gray-100 dark:hover:bg-gray-700", formEmoji === e && "bg-blue-100 dark:bg-blue-900")}>
-                                                                {e}
-                                                            </button>
+                                                                className={cn("w-8 h-8 rounded text-lg hover:bg-gray-100 dark:hover:bg-gray-700", formEmoji === e && "bg-blue-100 dark:bg-blue-900")}>{e}</button>
                                                         ))}
                                                     </div>
                                                 </div>
@@ -432,9 +405,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                                         </div>
                                         <input type="text" value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder="Title" className="flex-1 h-10 px-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm border-0 focus:ring-2 focus:ring-blue-500" />
                                     </div>
-
                                     <input type="text" value={formUrl} onChange={e => setFormUrl(e.target.value)} placeholder="https://example.com" className="w-full h-10 px-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm mb-3 border-0 focus:ring-2 focus:ring-blue-500" />
-
                                     <div className="flex gap-2">
                                         <button onClick={cancelForm} className="flex-1 h-9 rounded-lg bg-gray-200 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">Cancel</button>
                                         <button onClick={saveLink} className="flex-1 h-9 rounded-lg bg-blue-500 text-sm text-white hover:bg-blue-600">Save</button>
@@ -442,7 +413,6 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                                 </div>
                             )}
 
-                            {/* Links List */}
                             {customLinks.length > 0 && (
                                 <div className="space-y-2">
                                     {customLinks.map(link => (
@@ -462,7 +432,6 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                 )}
             </div>
 
-            {/* Footer */}
             <div className="mt-6 flex flex-col items-center gap-1">
                 <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-400">Created by 0xarshia.eth</span>
