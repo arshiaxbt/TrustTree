@@ -310,7 +310,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         {settings.showFarcaster && farcaster?.username && (
                             <a href={`https://farcaster.xyz/~/profiles/${farcaster.username}`} target="_blank" rel="noopener noreferrer"
                                 className={cn(btnBase, btnBg, "text-purple-800 hover:text-white hover:bg-[#855DCD]")}>
-                                <img src={FARCASTER_LOGO} alt="Farcaster" className="w-5 h-5 object-contain" />
+                                <img src={FARCASTER_LOGO} alt="Farcaster" className="w-6 h-6 object-contain" />
                             </a>
                         )}
                         {settings.showTelegram && telegram?.username && (
@@ -332,7 +332,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         {settings.showDeBank && dp.primaryAddress && (
                             <a href={`https://debank.com/profile/${dp.primaryAddress}`} target="_blank" rel="noopener noreferrer"
                                 className={cn(btnBase, btnBg, "hover:bg-[#FF6B4A] hover:text-white")}>
-                                <img src={DEBANK_LOGO} alt="DeBank" className="w-5 h-5 object-contain" />
+                                <img src={DEBANK_LOGO} alt="DeBank" className="w-7 h-7 object-contain" />
                             </a>
                         )}
                     </div>
