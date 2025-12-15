@@ -116,9 +116,10 @@ function UserSearch() {
 
     useEffect(() => {
         if (q.length < 2) { setIsLoading(false); setResults([]); return; }
-        setIsLoading(true);
+        // setIsLoading(true); // Moved inside timeout to prevent stuck state on debounce
         const controller = new AbortController();
         const timeoutId = setTimeout(async () => {
+            setIsLoading(true);
             try {
                 const res = await fetch(`https://api.ethos.network/api/v2/users/search?query=${encodeURIComponent(q)}&limit=5`, { headers: { 'X-Ethos-Client': 'trust-tree' }, signal: controller.signal });
                 if (res.ok) {
@@ -138,7 +139,11 @@ function UserSearch() {
                 <input type="text" value={q} onChange={e => { setQ(e.target.value); setShow(true); }} onFocus={() => setShow(true)} onBlur={() => setTimeout(() => setShow(false), 200)} placeholder="Search users..."
                     className="w-full h-11 px-4 pl-10 rounded-full bg-white/50 dark:bg-black/50 backdrop-blur-md border border-white/20 dark:border-white/10 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" />
                 <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                {isLoading && <Loader2 size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-blue-500 animate-spin" />}
+                {isLoading && (
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                        <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                )}
             </div>
             {show && results.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
@@ -286,8 +291,8 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         )}
                         {settings.showFarcaster && farcaster?.username && (
                             <a href={`https://farcaster.xyz/~/profiles/${farcaster.username}`} target="_blank" rel="noopener noreferrer"
-                                className={cn(btnBase, btnBg, "text-purple-800 hover:text-white hover:bg-[#855DCD]")}>
-                                <img src={FARCASTER_LOGO} alt="Farcaster" className="w-5 h-5 object-contain" />
+                                className={cn(btnBase, "hover:scale-110 transition-transform")}>
+                                <img src={FARCASTER_LOGO} alt="Farcaster" className="w-8 h-8 object-contain rounded-lg" />
                             </a>
                         )}
                         {settings.showTelegram && telegram?.username && (
@@ -308,8 +313,8 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         )}
                         {settings.showDeBank && dp.primaryAddress && (
                             <a href={`https://debank.com/profile/${dp.primaryAddress}`} target="_blank" rel="noopener noreferrer"
-                                className={cn(btnBase, btnBg, "hover:bg-[#FF6B4A] hover:text-white")}>
-                                <img src={DEBANK_LOGO} alt="DeBank" className="w-5 h-5 object-contain" />
+                                className={cn(btnBase, "hover:scale-110 transition-transform")}>
+                                <img src={DEBANK_LOGO} alt="DeBank" className="w-8 h-8 object-contain rounded-lg" />
                             </a>
                         )}
                     </div>
