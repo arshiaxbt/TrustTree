@@ -2,7 +2,7 @@
 
 import { EthosProfile, getEthosData } from '@/lib/ethos';
 import { usePrivy } from '@privy-io/react-auth';
-import { Copy, Twitter, ExternalLink, MessageCircle, Settings, Wallet, Search, Send } from 'lucide-react';
+import { Copy, Twitter, ExternalLink, MessageCircle, Settings, Wallet, Search, Send, Check } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -94,7 +94,6 @@ function UserSearch() {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const router = useRouter();
 
-    // Debounced search
     const searchUsers = useCallback(async (query: string) => {
         if (!query.trim() || query.length < 2) {
             setSuggestions([]);
@@ -127,7 +126,11 @@ function UserSearch() {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            searchUsers(searchQuery);
+            if (searchQuery.trim().length >= 2) {
+                searchUsers(searchQuery);
+            } else {
+                setSuggestions([]);
+            }
         }, 300);
         return () => clearTimeout(timer);
     }, [searchQuery, searchUsers]);
@@ -135,6 +138,7 @@ function UserSearch() {
     const handleSelect = (username: string) => {
         setShowSuggestions(false);
         setSearchQuery('');
+        setSuggestions([]);
         router.push(`/${username}`);
     };
 
@@ -142,6 +146,7 @@ function UserSearch() {
         e.preventDefault();
         if (searchQuery.trim()) {
             setShowSuggestions(false);
+            setSuggestions([]);
             router.push(`/${searchQuery.trim()}`);
         }
     };
@@ -158,25 +163,28 @@ function UserSearch() {
                             setShowSuggestions(true);
                         }}
                         onFocus={() => setShowSuggestions(true)}
-                        placeholder="Search by username..."
-                        className="w-full px-4 py-2.5 pl-10 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                        placeholder="Search users..."
+                        className="w-full px-4 py-2.5 pl-10 pr-16 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                     <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                    {isSearching && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                            <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                        </div>
-                    )}
+                    <button
+                        type="submit"
+                        disabled={!searchQuery.trim()}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 rounded-full bg-indigo-500 text-white text-xs font-medium hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                        {isSearching ? '...' : 'Go'}
+                    </button>
                 </div>
             </form>
 
-            {/* Live Suggestions */}
+            {/* Live Suggestions Dropdown */}
             {showSuggestions && suggestions.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden z-50">
                     {suggestions.map((user) => (
                         <button
                             key={user.username}
-                            onClick={() => handleSelect(user.username)}
+                            onMouseDown={() => handleSelect(user.username)}
                             className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
                         >
                             {user.avatarUrl ? (
@@ -207,56 +215,64 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     const [settings, setSettings] = useState<ProfileSettings>(defaultSettings);
     const [showSettings, setShowSettings] = useState(false);
     const [isOwner, setIsOwner] = useState(false);
+    const [myProfile, setMyProfile] = useState<EthosProfile | null>(null);
 
     const walletAddress = getEthosWalletAddress(user);
-
-    // Auto-detect if current user is the owner
-    useEffect(() => {
-        if (ready && authenticated && walletAddress && profile?.primaryAddress) {
-            const isMatch = walletAddress.toLowerCase() === profile.primaryAddress.toLowerCase();
-            setIsOwner(isMatch);
-        } else if (ready && authenticated && walletAddress && !initialProfile) {
-            // If no initial profile, user is viewing their own profile
-            setIsOwner(true);
-        } else {
-            setIsOwner(false);
-        }
-    }, [ready, authenticated, walletAddress, profile, initialProfile]);
-
-    useEffect(() => {
-        async function fetchUserProfile() {
-            if (authenticated && walletAddress) {
-                const data = await getEthosData(walletAddress);
-                if (data) {
-                    setProfile(data);
-                }
-            }
-        }
-
-        if (authenticated && !initialProfile) {
-            fetchUserProfile();
-        }
-
-        // Load settings based on profile ID
-        const profileId = profile?.id || initialProfile?.id || walletAddress;
-        if (profileId) {
-            setSettings(loadSettings(profileId));
-        }
-    }, [authenticated, walletAddress, initialProfile, profile]);
-
-    const updateSettings = (newSettings: ProfileSettings) => {
-        setSettings(newSettings);
-        const profileId = profile?.id || initialProfile?.id || walletAddress;
-        if (profileId) {
-            saveSettings(profileId, newSettings);
-        }
-    };
-
     const displayProfile = profile || initialProfile || {
         id: 'Guest',
         score: 0,
         vouchCount: 0,
         linkedAccounts: []
+    };
+
+    // Fetch the logged-in user's profile first
+    useEffect(() => {
+        async function fetchMyProfile() {
+            if (authenticated && walletAddress) {
+                const data = await getEthosData(walletAddress);
+                if (data) {
+                    setMyProfile(data);
+                    // If no initial profile provided, this is the user's own profile
+                    if (!initialProfile) {
+                        setProfile(data);
+                    }
+                }
+            }
+        }
+
+        if (authenticated && walletAddress) {
+            fetchMyProfile();
+        }
+    }, [authenticated, walletAddress, initialProfile]);
+
+    // Determine ownership by comparing usernames
+    useEffect(() => {
+        if (ready && authenticated && myProfile?.username && displayProfile.username) {
+            const isMatch = myProfile.username.toLowerCase() === displayProfile.username.toLowerCase();
+            setIsOwner(isMatch);
+            console.log('[ProfileCard] Ownership check:', myProfile.username, '===', displayProfile.username, '=', isMatch);
+        } else if (ready && authenticated && !initialProfile && profile) {
+            // Viewing own profile (no initial, fetched own)
+            setIsOwner(true);
+        } else {
+            setIsOwner(false);
+        }
+    }, [ready, authenticated, myProfile, displayProfile, initialProfile, profile]);
+
+    // Load settings
+    useEffect(() => {
+        const profileId = displayProfile.id || displayProfile.username || walletAddress;
+        if (profileId) {
+            setSettings(loadSettings(profileId));
+        }
+    }, [displayProfile, walletAddress]);
+
+    const updateSettings = (newSettings: ProfileSettings) => {
+        setSettings(newSettings);
+        const profileId = displayProfile.id || displayProfile.username || walletAddress;
+        if (profileId) {
+            saveSettings(profileId, newSettings);
+        }
     };
 
     const handleCopyLink = () => {
@@ -268,7 +284,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
         setTimeout(() => setIsCopied(false), 2000);
     };
 
-    // Get social info with IDs from Ethos API
+    // Get social info
     const xUsername = displayProfile.username;
     const discordAccount = displayProfile.linkedAccounts.find(a => a.service === 'discord');
     const discordId = discordAccount?.username;
@@ -287,15 +303,15 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
 
             <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-sm transition-all hover:shadow-md">
 
-                {/* Edit Button - Always visible for owner */}
+                {/* Edit Button */}
                 {canEdit && (
                     <button
                         onClick={() => setShowSettings(!showSettings)}
                         className={cn(
-                            "absolute top-4 right-4 p-2.5 rounded-full transition-all z-10 shadow-sm",
+                            "absolute top-4 right-4 p-2.5 rounded-full transition-all z-10",
                             showSettings
-                                ? "bg-indigo-500 text-white shadow-indigo-200 dark:shadow-indigo-900"
-                                : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700"
+                                ? "bg-indigo-500 text-white"
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                         )}
                         title="Edit Profile Settings"
                     >
@@ -319,7 +335,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         )}
                     </div>
 
-                    {/* Display Name & Username */}
+                    {/* Name */}
                     <div className="space-y-1">
                         {displayProfile.displayName && (
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -351,20 +367,18 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
 
                     {/* Social Icons */}
                     <div className="flex gap-3 flex-wrap justify-center">
-                        {/* X (Twitter) */}
                         {settings.showX && xUsername && (
                             <a
                                 href={`https://x.com/${xUsername}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="p-3 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-black dark:hover:text-white transition-all"
+                                className="p-3 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
                                 title={`@${xUsername} on X`}
                             >
                                 <Twitter size={18} />
                             </a>
                         )}
 
-                        {/* Discord */}
                         {settings.showDiscord && discordId && (
                             <a
                                 href={`https://discord.com/users/${discordId}`}
@@ -377,7 +391,6 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                             </a>
                         )}
 
-                        {/* Farcaster */}
                         {settings.showFarcaster && farcasterFid && (
                             <a
                                 href={`https://warpcast.com/~/profiles/${farcasterFid}`}
@@ -390,18 +403,18 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                             </a>
                         )}
 
-                        {/* Telegram using tg://user?id= protocol */}
                         {settings.showTelegram && telegramId && (
                             <a
-                                href={`tg://user?id=${telegramId}`}
+                                href={`https://t.me/${xUsername || ''}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="p-3 rounded-full bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400 hover:bg-sky-200 dark:hover:bg-sky-800 transition-all"
-                                title="Open in Telegram"
+                                title="Telegram"
                             >
                                 <Send size={18} />
                             </a>
                         )}
 
-                        {/* DeBank */}
                         {settings.showDeBank && primaryWallet && (
                             <a
                                 href={`https://debank.com/profile/${primaryWallet}`}
@@ -415,28 +428,41 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         )}
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-3">
-                        <button
-                            onClick={handleCopyLink}
-                            className="flex items-center gap-2 px-5 py-2 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium text-xs transition-transform active:scale-95 hover:opacity-90"
-                        >
-                            <Copy size={14} />
-                            {isCopied ? 'Copied' : 'Share'}
-                        </button>
-
-                        {displayProfile.username && (
-                            <a
-                                href={`https://app.ethos.network/profile/x/${displayProfile.username}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-5 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium text-xs hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
-                            >
-                                <ExternalLink size={14} />
-                                Ethos
-                            </a>
+                    {/* Copy Profile Link Button */}
+                    <button
+                        onClick={handleCopyLink}
+                        className={cn(
+                            "flex items-center gap-2 px-6 py-2.5 rounded-full font-medium text-sm transition-all",
+                            isCopied
+                                ? "bg-green-500 text-white"
+                                : "bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90 active:scale-95"
                         )}
-                    </div>
+                    >
+                        {isCopied ? (
+                            <>
+                                <Check size={16} />
+                                Copied!
+                            </>
+                        ) : (
+                            <>
+                                <Copy size={16} />
+                                Copy Profile Link
+                            </>
+                        )}
+                    </button>
+
+                    {/* Ethos Link */}
+                    {displayProfile.username && (
+                        <a
+                            href={`https://app.ethos.network/profile/x/${displayProfile.username}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-sm text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300"
+                        >
+                            View on Ethos
+                            <ExternalLink size={14} />
+                        </a>
+                    )}
                 </div>
 
                 {/* Settings Panel */}
@@ -447,67 +473,60 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                             Display Settings
                         </h3>
 
-                        <div className="space-y-3">
-                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                                Show/Hide Socials
-                            </p>
-                            <div className="grid grid-cols-2 gap-2">
-                                <label className="flex items-center gap-2 cursor-pointer text-xs p-2.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
-                                    <input
-                                        type="checkbox"
-                                        checked={settings.showX}
-                                        onChange={(e) => updateSettings({ ...settings, showX: e.target.checked })}
-                                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                    />
-                                    <Twitter size={14} className="text-gray-500" />
-                                    <span className="text-gray-700 dark:text-gray-300">X</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer text-xs p-2.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
-                                    <input
-                                        type="checkbox"
-                                        checked={settings.showDiscord}
-                                        onChange={(e) => updateSettings({ ...settings, showDiscord: e.target.checked })}
-                                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                    />
-                                    <MessageCircle size={14} className="text-indigo-500" />
-                                    <span className="text-gray-700 dark:text-gray-300">Discord</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer text-xs p-2.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
-                                    <input
-                                        type="checkbox"
-                                        checked={settings.showFarcaster}
-                                        onChange={(e) => updateSettings({ ...settings, showFarcaster: e.target.checked })}
-                                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                    />
-                                    <ExternalLink size={14} className="text-purple-500" />
-                                    <span className="text-gray-700 dark:text-gray-300">Farcaster</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer text-xs p-2.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
-                                    <input
-                                        type="checkbox"
-                                        checked={settings.showTelegram}
-                                        onChange={(e) => updateSettings({ ...settings, showTelegram: e.target.checked })}
-                                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                    />
-                                    <Send size={14} className="text-sky-500" />
-                                    <span className="text-gray-700 dark:text-gray-300">Telegram</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer text-xs p-2.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors col-span-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={settings.showDeBank}
-                                        onChange={(e) => updateSettings({ ...settings, showDeBank: e.target.checked })}
-                                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                    />
-                                    <Wallet size={14} className="text-orange-500" />
-                                    <span className="text-gray-700 dark:text-gray-300">DeBank</span>
-                                </label>
-                            </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <label className="flex items-center gap-2 cursor-pointer text-xs p-2.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.showX}
+                                    onChange={(e) => updateSettings({ ...settings, showX: e.target.checked })}
+                                    className="rounded border-gray-300 text-indigo-600"
+                                />
+                                <Twitter size={14} />
+                                <span className="text-gray-700 dark:text-gray-300">X</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer text-xs p-2.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.showDiscord}
+                                    onChange={(e) => updateSettings({ ...settings, showDiscord: e.target.checked })}
+                                    className="rounded border-gray-300 text-indigo-600"
+                                />
+                                <MessageCircle size={14} />
+                                <span className="text-gray-700 dark:text-gray-300">Discord</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer text-xs p-2.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.showFarcaster}
+                                    onChange={(e) => updateSettings({ ...settings, showFarcaster: e.target.checked })}
+                                    className="rounded border-gray-300 text-indigo-600"
+                                />
+                                <ExternalLink size={14} />
+                                <span className="text-gray-700 dark:text-gray-300">Farcaster</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer text-xs p-2.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.showTelegram}
+                                    onChange={(e) => updateSettings({ ...settings, showTelegram: e.target.checked })}
+                                    className="rounded border-gray-300 text-indigo-600"
+                                />
+                                <Send size={14} />
+                                <span className="text-gray-700 dark:text-gray-300">Telegram</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer text-xs p-2.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 col-span-2">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.showDeBank}
+                                    onChange={(e) => updateSettings({ ...settings, showDeBank: e.target.checked })}
+                                    className="rounded border-gray-300 text-indigo-600"
+                                />
+                                <Wallet size={14} />
+                                <span className="text-gray-700 dark:text-gray-300">DeBank</span>
+                            </label>
                         </div>
 
-                        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-4 flex items-center gap-1">
-                            ✓ Settings saved to your browser
-                        </p>
+                        <p className="text-[10px] text-green-500 mt-3">✓ Settings saved automatically</p>
                     </div>
                 )}
             </div>
@@ -521,7 +540,6 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
-                        title="@0xarshia on X"
                     >
                         <Twitter size={14} />
                     </a>
@@ -532,7 +550,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         href="https://ethos.network"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[10px] font-medium text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300"
+                        className="text-[10px] font-medium text-indigo-500 hover:text-indigo-600"
                     >
                         Ethos
                     </a>
