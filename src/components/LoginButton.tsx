@@ -1,16 +1,14 @@
 'use client';
 
 import { usePrivy } from '@privy-io/react-auth';
-import { LogOut } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { getEthosData } from '@/lib/ethos';
 
-/**
- * Gets the Ethos wallet address from the user's linked accounts.
- * Priority: cross-app embedded wallet first (Ethos can resolve it via search)
- */
 function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): string | null {
     if (!user) return null;
 
-    // PRIORITY 1: Cross-app embedded wallet - Ethos search can resolve this
     const crossAppAccount = user.linkedAccounts?.find(
         (account) => account.type === 'cross_app'
     );
@@ -22,7 +20,6 @@ function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): strin
         }
     }
 
-    // PRIORITY 2: Regular wallet
     const walletAccount = user.linkedAccounts?.find(
         (account) => account.type === 'wallet' && 'address' in account
     );
@@ -31,33 +28,70 @@ function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): strin
         return (walletAccount as { address: string }).address;
     }
 
-    // PRIORITY 3: Fallback
     return user.wallet?.address || null;
 }
 
 export function LoginButton() {
-    const { login, logout, authenticated, user } = usePrivy();
+    const { login, logout, authenticated, user, ready } = usePrivy();
+    const router = useRouter();
+    const [username, setUsername] = useState<string | null>(null);
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
-    // If authenticated, show user info and logout button
+    // Fetch user profile to get username for redirect
+    useEffect(() => {
+        async function fetchProfile() {
+            if (authenticated && user) {
+                const walletAddress = getEthosWalletAddress(user);
+                if (walletAddress) {
+                    const profile = await getEthosData(walletAddress);
+                    if (profile?.username) {
+                        setUsername(profile.username);
+                        setAvatarUrl(profile.avatarUrl || null);
+                    }
+                }
+            }
+        }
+        fetchProfile();
+    }, [authenticated, user]);
+
+    const handleProfileClick = () => {
+        if (username) {
+            router.push(`/${username}`);
+        }
+    };
+
     if (authenticated && user) {
         const walletAddress = getEthosWalletAddress(user);
-        const displayIdentifier = walletAddress
-            ? `${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}`
-            : user.email?.address
-                ? user.email.address
+        const displayName = username
+            ? `@${username}`
+            : walletAddress
+                ? `${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}`
                 : 'User';
 
         return (
-            <div className="flex items-center gap-3">
-                <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-3 py-1 rounded-full text-sm font-medium">
-                    {displayIdentifier}
-                </div>
+            <div className="flex items-center gap-2">
+                <button
+                    onClick={handleProfileClick}
+                    className="flex items-center gap-2 h-9 px-3 rounded-full bg-[#f5f5f7] dark:bg-[#2d2d2f] hover:bg-[#e8e8ed] dark:hover:bg-[#3d3d3f] transition-colors cursor-pointer"
+                    title="Go to your profile"
+                >
+                    {avatarUrl ? (
+                        <img src={avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover" />
+                    ) : (
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#0071e3] to-[#a855f7] flex items-center justify-center">
+                            <User size={12} className="text-white" />
+                        </div>
+                    )}
+                    <span className="text-[13px] font-medium text-[#1d1d1f] dark:text-white">
+                        {displayName}
+                    </span>
+                </button>
                 <button
                     onClick={logout}
-                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
+                    className="w-9 h-9 rounded-full bg-[#f5f5f7] dark:bg-[#2d2d2f] hover:bg-[#e8e8ed] dark:hover:bg-[#3d3d3f] flex items-center justify-center text-[#86868b] hover:text-[#1d1d1f] dark:hover:text-white transition-colors"
                     title="Logout"
                 >
-                    <LogOut size={18} />
+                    <LogOut size={15} />
                 </button>
             </div>
         );
@@ -66,7 +100,8 @@ export function LoginButton() {
     return (
         <button
             onClick={login}
-            className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-2 rounded-full font-semibold hover:opacity-90 transition-opacity"
+            disabled={!ready}
+            className="h-9 px-5 rounded-full bg-[#0071e3] text-white text-[13px] font-medium hover:bg-[#0077ed] disabled:opacity-50 transition-colors"
         >
             Log in with Ethos
         </button>

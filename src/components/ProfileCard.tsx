@@ -288,9 +288,11 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                             </a>
                         )}
                         {settings.showTelegram && telegram?.username && (
-                            <span className="w-10 h-10 rounded-full bg-[#f5f5f7] dark:bg-[#2d2d2f] flex items-center justify-center text-[#0088cc] cursor-default" title="Telegram connected">
+                            <a href={`tg://user?id=${telegram.username}`}
+                                className="w-10 h-10 rounded-full bg-[#f5f5f7] dark:bg-[#2d2d2f] flex items-center justify-center text-[#0088cc] hover:bg-[#0088cc] hover:text-white transition-colors"
+                                title="Open in Telegram">
                                 <TelegramIcon />
-                            </span>
+                            </a>
                         )}
                         {settings.showDeBank && dp.primaryAddress && (
                             <a href={`https://debank.com/profile/${dp.primaryAddress}`} target="_blank" rel="noopener noreferrer"
