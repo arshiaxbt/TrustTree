@@ -120,42 +120,17 @@ export default function Home() {
         )}
 
         {/* Footer */}
-        <div className="mt-8 space-y-2">
-          <div className="flex items-center justify-center gap-2">
+        <div className="mt-8 flex flex-col items-center gap-1">
+          <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Created by 0xarshia.eth</span>
-            <span className="text-gray-300 dark:text-gray-600">|</span>
-            <a
-              href="https://x.com/0xarshia"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
-              title="@0xarshia on X"
-            >
-              <Twitter size={16} />
-            </a>
-            <a
-              href="https://github.com/arshiaxbt/TrustTree"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
-              title="GitHub Repository"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <a href="https://x.com/0xarshia" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 dark:hover:text-white"><Twitter size={14} /></a>
+            <a href="https://github.com/arshiaxbt/TrustTree" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                 <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.17 22 16.42 22 12A10 10 0 0 0 12 2z" />
               </svg>
             </a>
           </div>
-          <div className="flex items-center justify-center gap-1.5">
-            <span className="text-[10px] text-gray-400 dark:text-gray-600">Powered by</span>
-            <a
-              href="https://ethos.network"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[10px] font-medium text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300"
-            >
-              Ethos
-            </a>
-          </div>
+          <p className="text-xs text-gray-400">Powered by <a href="https://ethos.network" target="_blank" className="text-blue-500 hover:underline">Ethos</a></p>
         </div>
       </div>
     </main>

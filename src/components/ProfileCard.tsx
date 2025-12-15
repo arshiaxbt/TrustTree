@@ -196,10 +196,28 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
 
     const telegram = dp.linkedAccounts.find(a => a.service === 'telegram');
     useEffect(() => {
+        let isMounted = true;
         if (telegram?.username) {
             setTelegramLoading(true);
-            getTelegramUsername(telegram.username).then(username => { setTelegramUsername(username); setTelegramLoading(false); });
+
+            // Add a timeout to force stop loading if API hangs
+            const timer = setTimeout(() => {
+                if (isMounted) setTelegramLoading(false);
+            }, 5000);
+
+            getTelegramUsername(telegram.username)
+                .then(username => {
+                    if (isMounted) {
+                        setTelegramUsername(username);
+                        setTelegramLoading(false);
+                    }
+                })
+                .catch(() => {
+                    if (isMounted) setTelegramLoading(false);
+                })
+                .finally(() => clearTimeout(timer));
         }
+        return () => { isMounted = false; };
     }, [telegram?.username]);
 
     const update = (s: ProfileSettings) => { setSettings(s); saveSettings(profileId, s); };
