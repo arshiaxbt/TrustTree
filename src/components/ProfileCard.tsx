@@ -2,7 +2,7 @@
 
 import { EthosProfile, getEthosData } from '@/lib/ethos';
 import { usePrivy } from '@privy-io/react-auth';
-import { Copy, Settings, Search, Check, ExternalLink } from 'lucide-react';
+import { Copy, Settings, Search, Check, ExternalLink, Loader2 } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -12,34 +12,35 @@ function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-// Official SVG Icons
-const XIcon = () => (
-    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+// Official SVG Icons - Clean minimal style
+const XIcon = ({ size = 16 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </svg>
 );
 
 const DiscordIcon = () => (
-    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-        <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z" />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.11 13.11 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
     </svg>
 );
 
+// Farcaster - Purple arch logo
 const FarcasterIcon = () => (
-    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-        <path d="M18.24 2.4H5.76C3.9384 2.4 2.4 3.9384 2.4 5.76v12.48c0 1.8216 1.5384 3.36 3.36 3.36h12.48c1.8216 0 3.36-1.5384 3.36-3.36V5.76c0-1.8216-1.5384-3.36-3.36-3.36zm-.72 13.92c0 .4968-.4032.9-.9.9H7.38c-.4968 0-.9-.4032-.9-.9V7.68c0-.4968.4032-.9.9-.9h9.24c.4968 0 .9.4032.9.9v8.64z" />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M3 4h18v16.5a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5V18H7v2.5a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5V4zm3 8.5a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.5-.5H6zm9 0a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.5-.5h-3zM4.5 2A.5.5 0 0 0 4 2.5v1a.5.5 0 0 0 .5.5h15a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-15z" />
     </svg>
 );
 
 const TelegramIcon = () => (
-    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
         <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
     </svg>
 );
 
 const DeBankIcon = () => (
-    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm4 0h-2v-6h2v6zm-4-8h-2V7h2v2zm4 0h-2V7h2v2z" />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15H9v-6h2v6zm4 0h-2v-6h2v6z" />
     </svg>
 );
 
@@ -63,109 +64,104 @@ const defaultSettings: ProfileSettings = {
     showDeBank: true,
 };
 
-function loadSettings(profileId: string): ProfileSettings {
+function loadSettings(id: string): ProfileSettings {
     if (typeof window === 'undefined') return defaultSettings;
     try {
-        const stored = localStorage.getItem(`trusttree-settings-${profileId}`);
-        if (stored) return { ...defaultSettings, ...JSON.parse(stored) };
+        const s = localStorage.getItem(`tt-${id}`);
+        if (s) return { ...defaultSettings, ...JSON.parse(s) };
     } catch { }
     return defaultSettings;
 }
 
-function saveSettings(profileId: string, settings: ProfileSettings) {
+function saveSettings(id: string, s: ProfileSettings) {
     if (typeof window === 'undefined') return;
-    try {
-        localStorage.setItem(`trusttree-settings-${profileId}`, JSON.stringify(settings));
-    } catch { }
+    try { localStorage.setItem(`tt-${id}`, JSON.stringify(s)); } catch { }
 }
 
-function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): string | null {
+function getWallet(user: ReturnType<typeof usePrivy>['user']): string | null {
     if (!user) return null;
-    const crossAppAccount = user.linkedAccounts?.find(a => a.type === 'cross_app');
-    if (crossAppAccount && 'embeddedWallets' in crossAppAccount) {
-        const wallets = (crossAppAccount as { embeddedWallets?: Array<{ address: string }> }).embeddedWallets;
-        if (wallets?.[0]?.address) return wallets[0].address;
+    const ca = user.linkedAccounts?.find(a => a.type === 'cross_app');
+    if (ca && 'embeddedWallets' in ca) {
+        const w = (ca as { embeddedWallets?: { address: string }[] }).embeddedWallets;
+        if (w?.[0]?.address) return w[0].address;
     }
-    const walletAccount = user.linkedAccounts?.find(a => a.type === 'wallet' && 'address' in a);
-    if (walletAccount && 'address' in walletAccount) return (walletAccount as { address: string }).address;
+    const wa = user.linkedAccounts?.find(a => a.type === 'wallet' && 'address' in a);
+    if (wa && 'address' in wa) return (wa as { address: string }).address;
     return user.wallet?.address || null;
 }
 
-// Search with 5 live results
-interface SearchResult {
-    username: string;
-    displayName?: string;
-    avatarUrl?: string;
-    score: number;
-}
+// Search Component - Apple style
+interface SearchResult { username: string; displayName?: string; avatarUrl?: string; score: number; }
 
 function UserSearch() {
-    const [query, setQuery] = useState('');
+    const [q, setQ] = useState('');
     const [results, setResults] = useState<SearchResult[]>([]);
     const [loading, setLoading] = useState(false);
-    const [showResults, setShowResults] = useState(false);
+    const [show, setShow] = useState(false);
     const router = useRouter();
 
-    const search = useCallback(async (q: string) => {
-        if (q.length < 2) { setResults([]); return; }
+    const search = useCallback(async (query: string) => {
+        if (query.length < 2) { setResults([]); return; }
         setLoading(true);
         try {
-            // Direct call to Ethos API for multiple results
-            const res = await fetch(`https://api.ethos.network/api/v2/users/search?query=${encodeURIComponent(q)}&limit=5`, {
+            const res = await fetch(`https://api.ethos.network/api/v2/users/search?query=${encodeURIComponent(query)}&limit=5`, {
                 headers: { 'X-Ethos-Client': 'trust-tree' }
             });
             if (res.ok) {
                 const data = await res.json();
-                setResults((data.values || []).slice(0, 5).map((u: { username: string; displayName?: string; avatarUrl?: string; score?: number }) => ({
-                    username: u.username,
+                const users = (data.values || []).slice(0, 5).map((u: { username?: string; displayName?: string; avatarUrl?: string; score?: number }) => ({
+                    username: u.username || '',
                     displayName: u.displayName,
                     avatarUrl: u.avatarUrl,
                     score: u.score || 0,
-                })));
+                })).filter((u: SearchResult) => u.username);
+                setResults(users);
             }
         } catch { }
         setLoading(false);
     }, []);
 
     useEffect(() => {
-        const t = setTimeout(() => search(query), 250);
+        const t = setTimeout(() => search(q), 200);
         return () => clearTimeout(t);
-    }, [query, search]);
+    }, [q, search]);
 
     return (
         <div className="relative w-full max-w-sm mx-auto mb-8">
-            <div className="relative">
+            <div className="relative group">
                 <input
                     type="text"
-                    value={query}
-                    onChange={e => { setQuery(e.target.value); setShowResults(true); }}
-                    onFocus={() => setShowResults(true)}
-                    onBlur={() => setTimeout(() => setShowResults(false), 200)}
+                    value={q}
+                    onChange={e => { setQ(e.target.value); setShow(true); }}
+                    onFocus={() => setShow(true)}
+                    onBlur={() => setTimeout(() => setShow(false), 150)}
                     placeholder="Search users..."
-                    className="w-full px-5 py-3.5 pl-12 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-xl border border-white/30 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 shadow-lg shadow-black/5 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm"
+                    className="w-full h-12 px-5 pl-11 rounded-xl bg-[#f5f5f7] dark:bg-[#1d1d1f] text-[15px] text-[#1d1d1f] dark:text-white placeholder-[#86868b] focus:outline-none focus:ring-2 focus:ring-[#0071e3] transition-all"
                 />
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                {loading && <div className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />}
+                <Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#86868b]" />
+                {loading && (
+                    <Loader2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#86868b] animate-spin" />
+                )}
             </div>
 
-            {showResults && results.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-white/30 dark:border-white/10 shadow-xl overflow-hidden z-50">
+            {show && results.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1d1d1f] rounded-xl shadow-2xl border border-[#d2d2d7] dark:border-[#424245] overflow-hidden z-50">
                     {results.map(u => (
                         <button
                             key={u.username}
-                            onMouseDown={() => { setShowResults(false); setQuery(''); router.push(`/${u.username}`); }}
-                            className="w-full flex items-center gap-3 p-4 hover:bg-white/50 dark:hover:bg-white/10 transition-all"
+                            onMouseDown={() => { setShow(false); setQ(''); router.push(`/${u.username}`); }}
+                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#f5f5f7] dark:hover:bg-[#2d2d2f] transition-colors"
                         >
                             {u.avatarUrl ? (
-                                <img src={u.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover ring-2 ring-white/50" />
+                                <img src={u.avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover" />
                             ) : (
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold ring-2 ring-white/50">
-                                    {u.username?.substring(0, 2).toUpperCase()}
+                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0071e3] to-[#a855f7] flex items-center justify-center text-white text-xs font-semibold">
+                                    {u.username.substring(0, 2).toUpperCase()}
                                 </div>
                             )}
                             <div className="flex-1 text-left">
-                                <p className="font-medium text-gray-900 dark:text-white">{u.displayName || u.username}</p>
-                                <p className="text-xs text-gray-500">@{u.username} • {u.score} score</p>
+                                <p className="text-[15px] font-medium text-[#1d1d1f] dark:text-white">{u.displayName || u.username}</p>
+                                <p className="text-[13px] text-[#86868b]">@{u.username} · {u.score}</p>
                             </div>
                         </button>
                     ))}
@@ -178,205 +174,165 @@ function UserSearch() {
 export function ProfileCard({ initialProfile }: ProfileCardProps) {
     const { authenticated, user, ready } = usePrivy();
     const [profile, setProfile] = useState<EthosProfile | null>(initialProfile || null);
-    const [isCopied, setIsCopied] = useState(false);
+    const [copied, setCopied] = useState(false);
     const [settings, setSettings] = useState<ProfileSettings>(defaultSettings);
     const [showSettings, setShowSettings] = useState(false);
     const [isOwner, setIsOwner] = useState(false);
     const [myProfile, setMyProfile] = useState<EthosProfile | null>(null);
 
-    const walletAddress = getEthosWalletAddress(user);
-    const displayProfile = profile || initialProfile || { id: 'Guest', score: 0, vouchCount: 0, linkedAccounts: [] };
+    const wallet = getWallet(user);
+    const dp = profile || initialProfile || { id: 'Guest', score: 0, vouchCount: 0, linkedAccounts: [] };
 
     useEffect(() => {
-        async function fetchMyProfile() {
-            if (authenticated && walletAddress) {
-                const data = await getEthosData(walletAddress);
-                if (data) {
-                    setMyProfile(data);
-                    if (!initialProfile) setProfile(data);
-                }
-            }
+        if (authenticated && wallet) {
+            getEthosData(wallet).then(d => {
+                if (d) { setMyProfile(d); if (!initialProfile) setProfile(d); }
+            });
         }
-        if (authenticated && walletAddress) fetchMyProfile();
-    }, [authenticated, walletAddress, initialProfile]);
+    }, [authenticated, wallet, initialProfile]);
 
     useEffect(() => {
-        if (ready && authenticated && myProfile?.username && displayProfile.username) {
-            setIsOwner(myProfile.username.toLowerCase() === displayProfile.username.toLowerCase());
+        if (ready && authenticated && myProfile?.username && dp.username) {
+            setIsOwner(myProfile.username.toLowerCase() === dp.username.toLowerCase());
         } else if (ready && authenticated && !initialProfile && profile) {
             setIsOwner(true);
-        } else {
-            setIsOwner(false);
-        }
-    }, [ready, authenticated, myProfile, displayProfile, initialProfile, profile]);
+        } else setIsOwner(false);
+    }, [ready, authenticated, myProfile, dp, initialProfile, profile]);
 
     useEffect(() => {
-        const id = displayProfile.id || displayProfile.username || walletAddress;
+        const id = dp.id || dp.username || wallet;
         if (id) setSettings(loadSettings(id));
-    }, [displayProfile, walletAddress]);
+    }, [dp, wallet]);
 
-    const updateSettings = (s: ProfileSettings) => {
+    const update = (s: ProfileSettings) => {
         setSettings(s);
-        const id = displayProfile.id || displayProfile.username || walletAddress;
+        const id = dp.id || dp.username || wallet;
         if (id) saveSettings(id, s);
     };
 
-    const handleCopy = () => {
-        const url = displayProfile.username ? `${window.location.origin}/${displayProfile.username}` : window.location.href;
-        navigator.clipboard.writeText(url);
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
+    const copy = () => {
+        navigator.clipboard.writeText(dp.username ? `${window.location.origin}/${dp.username}` : window.location.href);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     };
 
-    // Social data
-    const xUsername = displayProfile.username;
-    const discordAccount = displayProfile.linkedAccounts.find(a => a.service === 'discord');
-    const farcasterAccount = displayProfile.linkedAccounts.find(a => a.service === 'farcaster');
-    const telegramAccount = displayProfile.linkedAccounts.find(a => a.service === 'telegram');
-    const primaryWallet = displayProfile.primaryAddress;
-
+    const discord = dp.linkedAccounts.find(a => a.service === 'discord');
+    const farcaster = dp.linkedAccounts.find(a => a.service === 'farcaster');
+    const telegram = dp.linkedAccounts.find(a => a.service === 'telegram');
     const canEdit = authenticated && isOwner;
 
     return (
-        <div className="w-full max-w-md mx-auto p-4 md:p-0">
+        <div className="w-full max-w-[400px] mx-auto">
             <UserSearch />
 
-            {/* Glass Card */}
-            <div className="relative overflow-hidden rounded-3xl bg-white/70 dark:bg-white/5 backdrop-blur-2xl border border-white/40 dark:border-white/10 shadow-2xl shadow-black/10">
+            {/* Apple-style Card */}
+            <div className="relative bg-white dark:bg-[#1d1d1f] rounded-[20px] shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.3)] overflow-hidden">
 
-                {/* Gradient Orbs for Glass Effect */}
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-indigo-400/30 to-purple-500/30 rounded-full blur-3xl" />
-                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-gradient-to-br from-pink-400/20 to-orange-400/20 rounded-full blur-3xl" />
-
-                {/* Settings Button */}
+                {/* Settings */}
                 {canEdit && (
-                    <button
-                        onClick={() => setShowSettings(!showSettings)}
-                        className={cn(
-                            "absolute top-5 right-5 p-2.5 rounded-xl backdrop-blur-xl transition-all z-10",
-                            showSettings
-                                ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/30"
-                                : "bg-white/50 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:bg-white/70 dark:hover:bg-white/20"
-                        )}
-                    >
-                        <Settings size={18} />
+                    <button onClick={() => setShowSettings(!showSettings)}
+                        className={cn("absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-colors",
+                            showSettings ? "bg-[#0071e3] text-white" : "bg-[#f5f5f7] dark:bg-[#2d2d2f] text-[#86868b] hover:text-[#1d1d1f] dark:hover:text-white")}>
+                        <Settings size={15} />
                     </button>
                 )}
 
-                <div className="relative p-10 flex flex-col items-center text-center space-y-6">
+                <div className="p-8 flex flex-col items-center text-center">
                     {/* Avatar */}
-                    <div className="relative">
-                        {displayProfile.avatarUrl ? (
-                            <img
-                                src={displayProfile.avatarUrl}
-                                alt=""
-                                className="w-28 h-28 rounded-3xl object-cover shadow-2xl shadow-black/20 ring-4 ring-white/50"
-                            />
+                    <div className="mb-5">
+                        {dp.avatarUrl ? (
+                            <img src={dp.avatarUrl} alt="" className="w-[88px] h-[88px] rounded-full object-cover shadow-lg" />
                         ) : (
-                            <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-4xl font-bold text-white shadow-2xl shadow-purple-500/30">
-                                {displayProfile.username?.substring(0, 2).toUpperCase() || '??'}
+                            <div className="w-[88px] h-[88px] rounded-full bg-gradient-to-br from-[#0071e3] to-[#a855f7] flex items-center justify-center text-[28px] font-bold text-white shadow-lg">
+                                {dp.username?.substring(0, 2).toUpperCase() || '??'}
                             </div>
                         )}
                     </div>
 
                     {/* Name */}
-                    <div className="space-y-1.5">
-                        <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-                            {displayProfile.displayName || displayProfile.username || 'Guest'}
-                        </h2>
-                        {displayProfile.username && (
-                            <p className="text-sm text-gray-500 dark:text-gray-400">@{displayProfile.username}</p>
-                        )}
-                    </div>
+                    <h2 className="text-[22px] font-semibold text-[#1d1d1f] dark:text-white mb-0.5">
+                        {dp.displayName || dp.username || 'Guest'}
+                    </h2>
+                    {dp.username && <p className="text-[15px] text-[#86868b] mb-5">@{dp.username}</p>}
 
                     {/* Stats */}
-                    <div className="flex gap-8">
+                    <div className="flex gap-10 mb-6">
                         <div className="text-center">
-                            <div className="text-3xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
-                                {displayProfile.score > 0 ? displayProfile.score : '—'}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Trust</div>
+                            <div className="text-[28px] font-semibold text-[#1d1d1f] dark:text-white">{dp.score > 0 ? dp.score : '—'}</div>
+                            <div className="text-[13px] text-[#86868b]">Trust Score</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                                {displayProfile.vouchCount || '—'}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Vouches</div>
+                            <div className="text-[28px] font-semibold text-[#1d1d1f] dark:text-white">{dp.vouchCount || '—'}</div>
+                            <div className="text-[13px] text-[#86868b]">Vouches</div>
                         </div>
                     </div>
 
-                    {/* Social Icons - Glass Style */}
-                    <div className="flex gap-3">
-                        {settings.showX && xUsername && (
-                            <a href={`https://x.com/${xUsername}`} target="_blank" rel="noopener noreferrer"
-                                className="p-3.5 rounded-2xl bg-white/50 dark:bg-white/10 backdrop-blur-xl text-gray-700 dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-lg shadow-black/5">
-                                <XIcon />
+                    {/* Socials */}
+                    <div className="flex gap-2 mb-6">
+                        {settings.showX && dp.username && (
+                            <a href={`https://x.com/${dp.username}`} target="_blank" rel="noopener noreferrer"
+                                className="w-10 h-10 rounded-full bg-[#f5f5f7] dark:bg-[#2d2d2f] flex items-center justify-center text-[#1d1d1f] dark:text-white hover:bg-[#1d1d1f] hover:text-white dark:hover:bg-white dark:hover:text-[#1d1d1f] transition-colors">
+                                <XIcon size={16} />
                             </a>
                         )}
-                        {settings.showDiscord && discordAccount?.username && (
-                            <a href={`https://discord.com/users/${discordAccount.username}`} target="_blank" rel="noopener noreferrer"
-                                className="p-3.5 rounded-2xl bg-white/50 dark:bg-white/10 backdrop-blur-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all shadow-lg shadow-black/5">
+                        {settings.showDiscord && discord?.username && (
+                            <a href={`https://discord.com/users/${discord.username}`} target="_blank" rel="noopener noreferrer"
+                                className="w-10 h-10 rounded-full bg-[#f5f5f7] dark:bg-[#2d2d2f] flex items-center justify-center text-[#5865F2] hover:bg-[#5865F2] hover:text-white transition-colors">
                                 <DiscordIcon />
                             </a>
                         )}
-                        {settings.showFarcaster && farcasterAccount?.username && (
-                            <a href={`https://warpcast.com/~/profiles/${farcasterAccount.username}`} target="_blank" rel="noopener noreferrer"
-                                className="p-3.5 rounded-2xl bg-white/50 dark:bg-white/10 backdrop-blur-xl text-purple-600 dark:text-purple-400 hover:bg-purple-500 hover:text-white transition-all shadow-lg shadow-black/5">
+                        {settings.showFarcaster && farcaster?.username && (
+                            <a href={`https://warpcast.com/~/profiles/${farcaster.username}`} target="_blank" rel="noopener noreferrer"
+                                className="w-10 h-10 rounded-full bg-[#f5f5f7] dark:bg-[#2d2d2f] flex items-center justify-center text-[#8b5cf6] hover:bg-[#8b5cf6] hover:text-white transition-colors">
                                 <FarcasterIcon />
                             </a>
                         )}
-                        {settings.showTelegram && telegramAccount?.username && (
-                            <a href={`https://t.me/user?id=${telegramAccount.username}`} target="_blank" rel="noopener noreferrer"
-                                className="p-3.5 rounded-2xl bg-white/50 dark:bg-white/10 backdrop-blur-xl text-sky-600 dark:text-sky-400 hover:bg-sky-500 hover:text-white transition-all shadow-lg shadow-black/5">
+                        {settings.showTelegram && telegram?.username && (
+                            <span className="w-10 h-10 rounded-full bg-[#f5f5f7] dark:bg-[#2d2d2f] flex items-center justify-center text-[#0088cc] cursor-default" title="Telegram connected">
                                 <TelegramIcon />
-                            </a>
+                            </span>
                         )}
-                        {settings.showDeBank && primaryWallet && (
-                            <a href={`https://debank.com/profile/${primaryWallet}`} target="_blank" rel="noopener noreferrer"
-                                className="p-3.5 rounded-2xl bg-white/50 dark:bg-white/10 backdrop-blur-xl text-orange-600 dark:text-orange-400 hover:bg-orange-500 hover:text-white transition-all shadow-lg shadow-black/5">
+                        {settings.showDeBank && dp.primaryAddress && (
+                            <a href={`https://debank.com/profile/${dp.primaryAddress}`} target="_blank" rel="noopener noreferrer"
+                                className="w-10 h-10 rounded-full bg-[#f5f5f7] dark:bg-[#2d2d2f] flex items-center justify-center text-[#f97316] hover:bg-[#f97316] hover:text-white transition-colors">
                                 <DeBankIcon />
                             </a>
                         )}
                     </div>
 
                     {/* Copy Button */}
-                    <button onClick={handleCopy}
-                        className={cn(
-                            "flex items-center gap-2.5 px-8 py-3.5 rounded-2xl font-semibold text-sm transition-all backdrop-blur-xl shadow-lg",
-                            isCopied
-                                ? "bg-green-500 text-white shadow-green-500/30"
-                                : "bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:opacity-90 active:scale-95 shadow-indigo-500/30"
-                        )}>
-                        {isCopied ? <><Check size={18} /> Copied!</> : <><Copy size={18} /> Copy Profile Link</>}
+                    <button onClick={copy}
+                        className={cn("w-full h-11 rounded-xl font-medium text-[15px] transition-all flex items-center justify-center gap-2",
+                            copied ? "bg-[#34c759] text-white" : "bg-[#0071e3] text-white hover:bg-[#0077ed]")}>
+                        {copied ? <><Check size={16} /> Copied</> : <><Copy size={16} /> Copy Profile Link</>}
                     </button>
 
                     {/* Ethos Link */}
-                    {displayProfile.username && (
-                        <a href={`https://app.ethos.network/profile/x/${displayProfile.username}`} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-sm text-gray-500 hover:text-indigo-500 transition-colors">
-                            View on Ethos <ExternalLink size={14} />
+                    {dp.username && (
+                        <a href={`https://app.ethos.network/profile/x/${dp.username}`} target="_blank" rel="noopener noreferrer"
+                            className="mt-4 text-[13px] text-[#0071e3] hover:underline flex items-center gap-1">
+                            View on Ethos <ExternalLink size={12} />
                         </a>
                     )}
                 </div>
 
                 {/* Settings Panel */}
                 {showSettings && canEdit && (
-                    <div className="border-t border-white/20 dark:border-white/10 p-6 bg-white/30 dark:bg-white/5 backdrop-blur-xl">
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Display Settings</h3>
+                    <div className="border-t border-[#d2d2d7] dark:border-[#424245] p-5 bg-[#f5f5f7] dark:bg-[#161617]">
+                        <p className="text-[13px] font-medium text-[#86868b] mb-3 uppercase tracking-wide">Show/Hide</p>
                         <div className="grid grid-cols-2 gap-2">
-                            {[
-                                { key: 'showX', label: 'X', Icon: XIcon },
-                                { key: 'showDiscord', label: 'Discord', Icon: DiscordIcon },
-                                { key: 'showFarcaster', label: 'Farcaster', Icon: FarcasterIcon },
-                                { key: 'showTelegram', label: 'Telegram', Icon: TelegramIcon },
-                                { key: 'showDeBank', label: 'DeBank', Icon: DeBankIcon },
-                            ].map(({ key, label, Icon }) => (
-                                <label key={key} className="flex items-center gap-2 p-3 rounded-xl bg-white/50 dark:bg-white/10 cursor-pointer hover:bg-white/70 dark:hover:bg-white/20 transition-all text-sm">
-                                    <input type="checkbox" checked={settings[key as keyof ProfileSettings]}
-                                        onChange={e => updateSettings({ ...settings, [key]: e.target.checked })}
-                                        className="rounded border-gray-300 text-indigo-500" />
+                            {([
+                                ['showX', 'X', XIcon],
+                                ['showDiscord', 'Discord', DiscordIcon],
+                                ['showFarcaster', 'Farcaster', FarcasterIcon],
+                                ['showTelegram', 'Telegram', TelegramIcon],
+                                ['showDeBank', 'DeBank', DeBankIcon],
+                            ] as const).map(([key, label, Icon]) => (
+                                <label key={key} className="flex items-center gap-2 p-2.5 rounded-lg bg-white dark:bg-[#2d2d2f] cursor-pointer text-[13px]">
+                                    <input type="checkbox" checked={settings[key]} onChange={e => update({ ...settings, [key]: e.target.checked })}
+                                        className="rounded border-[#d2d2d7] text-[#0071e3] focus:ring-[#0071e3]" />
                                     <Icon />
-                                    <span className="text-gray-700 dark:text-gray-300">{label}</span>
+                                    <span className="text-[#1d1d1f] dark:text-white">{label}</span>
                                 </label>
                             ))}
                         </div>
@@ -384,17 +340,17 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                 )}
             </div>
 
-            {/* Footer */}
-            <div className="mt-8 text-center space-y-1">
-                <div className="flex items-center justify-center gap-3">
-                    <span className="text-xs text-gray-400">Created by 0xarshia.eth</span>
+            {/* Footer - Small creator button */}
+            <div className="mt-6 flex flex-col items-center gap-1">
+                <div className="flex items-center gap-2">
+                    <span className="text-[12px] text-[#86868b]">Created by 0xarshia.eth</span>
                     <a href="https://x.com/0xarshia" target="_blank" rel="noopener noreferrer"
-                        className="p-2 rounded-xl bg-white/50 dark:bg-white/10 backdrop-blur-xl text-gray-600 dark:text-gray-300 hover:bg-black hover:text-white transition-all">
-                        <XIcon />
+                        className="w-6 h-6 rounded-full bg-[#f5f5f7] dark:bg-[#2d2d2f] flex items-center justify-center text-[#1d1d1f] dark:text-white hover:bg-[#1d1d1f] hover:text-white dark:hover:bg-white dark:hover:text-[#1d1d1f] transition-colors">
+                        <XIcon size={10} />
                     </a>
                 </div>
-                <p className="text-[10px] text-gray-400">
-                    Powered by <a href="https://ethos.network" target="_blank" className="text-indigo-500 hover:underline">Ethos</a>
+                <p className="text-[11px] text-[#86868b]">
+                    Powered by <a href="https://ethos.network" target="_blank" className="text-[#0071e3] hover:underline">Ethos</a>
                 </p>
             </div>
         </div>
