@@ -9,6 +9,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "TrustTree",
   description: "Web3 Linktree with on-chain reputation",
+  icons: {
+    icon: "https://thick-emerald-possum.myfilebase.com/ipfs/QmVsumpPwi4ZpCfDrz6Pm7TkhGgt3GLvEi81aVcrr3iRix",
+  },
 };
 
 export default function RootLayout({

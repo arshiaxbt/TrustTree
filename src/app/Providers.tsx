@@ -16,7 +16,7 @@ export function Providers({ children }: ProvidersProps) {
                 appearance: {
                     theme: 'light',
                     accentColor: '#676FFF',
-                    logo: 'https://developers.ethos.network/logo.png', // Optional: Use Ethos or TrustTree logo
+                    logo: 'https://thick-emerald-possum.myfilebase.com/ipfs/QmVsumpPwi4ZpCfDrz6Pm7TkhGgt3GLvEi81aVcrr3iRix',
                 },
                 // Restrict login to only "Log in with Ethos"
                 loginMethodsAndOrder: {
