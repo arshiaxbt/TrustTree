@@ -2,10 +2,11 @@
 
 import { EthosProfile, getEthosData } from '@/lib/ethos';
 import { usePrivy } from '@privy-io/react-auth';
-import { Copy, Twitter, ExternalLink, MessageCircle, Send, Settings, Wallet } from 'lucide-react';
+import { Copy, Twitter, ExternalLink, MessageCircle, Settings, Wallet, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useRouter } from 'next/navigation';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -16,23 +17,18 @@ interface ProfileCardProps {
     isOwner?: boolean;
 }
 
-// Settings for social visibility and custom links
 interface ProfileSettings {
     showX: boolean;
     showDiscord: boolean;
     showFarcaster: boolean;
-    showTelegram: boolean;
     showDeBank: boolean;
-    customLinks: { name: string; url: string }[];
 }
 
 const defaultSettings: ProfileSettings = {
     showX: true,
     showDiscord: true,
     showFarcaster: true,
-    showTelegram: true,
     showDeBank: true,
-    customLinks: [],
 };
 
 function loadSettings(walletAddress: string): ProfileSettings {
@@ -80,6 +76,44 @@ function getEthosWalletAddress(user: ReturnType<typeof usePrivy>['user']): strin
     }
 
     return user.wallet?.address || null;
+}
+
+// Search Component
+function UserSearch() {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
+    const router = useRouter();
+
+    const handleSearch = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!searchQuery.trim()) return;
+
+        setIsSearching(true);
+        // Navigate to the username page
+        router.push(`/${searchQuery.trim()}`);
+    };
+
+    return (
+        <form onSubmit={handleSearch} className="w-full max-w-sm mx-auto mb-6">
+            <div className="relative">
+                <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by username..."
+                    className="w-full px-4 py-2.5 pl-10 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <button
+                    type="submit"
+                    disabled={isSearching || !searchQuery.trim()}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 rounded-full bg-indigo-500 text-white text-xs font-medium hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                    {isSearching ? '...' : 'Go'}
+                </button>
+            </div>
+        </form>
+    );
 }
 
 export function ProfileCard({ initialProfile, isOwner = false }: ProfileCardProps) {
@@ -136,32 +170,30 @@ export function ProfileCard({ initialProfile, isOwner = false }: ProfileCardProp
 
     // Get social info with IDs from Ethos API
     const xUsername = displayProfile.username;
-
-    // Get Discord ID from linkedAccounts (format: "service:discord:585920234100359199")
     const discordAccount = displayProfile.linkedAccounts.find(a => a.service === 'discord');
-    const discordId = discordAccount?.username; // This is actually the Discord user ID
-
-    // Get Farcaster FID 
+    const discordId = discordAccount?.username;
     const farcasterAccount = displayProfile.linkedAccounts.find(a => a.service === 'farcaster');
     const farcasterFid = farcasterAccount?.username;
-
-    // Get Telegram ID (note: Telegram IDs can't be used for profile links without username)
-    const telegramAccount = displayProfile.linkedAccounts.find(a => a.service === 'telegram');
-    const telegramId = telegramAccount?.username;
-
-    // Get primary wallet for DeBank
     const primaryWallet = displayProfile.primaryAddress;
 
     return (
         <div className="w-full max-w-md mx-auto p-4 md:p-0">
+            {/* Search Bar */}
+            <UserSearch />
+
             <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-sm transition-all hover:shadow-md">
 
                 {/* Edit Button for Owner */}
                 {canEdit && (
                     <button
                         onClick={() => setShowSettings(!showSettings)}
-                        className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all z-10"
-                        title="Edit Profile"
+                        className={cn(
+                            "absolute top-4 right-4 p-2 rounded-full transition-all z-10",
+                            showSettings
+                                ? "bg-indigo-500 text-white"
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        )}
+                        title="Edit Profile Settings"
                     >
                         <Settings size={16} />
                     </button>
@@ -254,19 +286,6 @@ export function ProfileCard({ initialProfile, isOwner = false }: ProfileCardProp
                             </a>
                         )}
 
-                        {/* Telegram - Note: Can only link if we have a username, ID doesn't work for links */}
-                        {settings.showTelegram && telegramId && xUsername && (
-                            <a
-                                href={`https://t.me/${xUsername}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-3 rounded-full bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400 hover:bg-sky-200 dark:hover:bg-sky-800 transition-all"
-                                title="Telegram"
-                            >
-                                <Send size={18} />
-                            </a>
-                        )}
-
                         {/* DeBank - using primary wallet address */}
                         {settings.showDeBank && primaryWallet && (
                             <a
@@ -309,7 +328,7 @@ export function ProfileCard({ initialProfile, isOwner = false }: ProfileCardProp
                 {showSettings && canEdit && (
                     <div className="border-t border-gray-100 dark:border-gray-800 p-6 bg-gray-50/50 dark:bg-gray-900/50">
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
-                            Display Settings
+                            ⚙️ Display Settings
                         </h3>
 
                         <div className="space-y-4">
@@ -317,64 +336,62 @@ export function ProfileCard({ initialProfile, isOwner = false }: ProfileCardProp
                                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                                     Show/Hide Socials
                                 </p>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <label className="flex items-center gap-2 cursor-pointer text-xs">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <label className="flex items-center gap-2 cursor-pointer text-xs p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                                         <input
                                             type="checkbox"
                                             checked={settings.showX}
                                             onChange={(e) => updateSettings({ ...settings, showX: e.target.checked })}
                                             className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                         />
-                                        <span className="text-gray-600 dark:text-gray-400">X (Twitter)</span>
+                                        <Twitter size={14} />
+                                        <span className="text-gray-600 dark:text-gray-400">X</span>
                                     </label>
-                                    <label className="flex items-center gap-2 cursor-pointer text-xs">
+                                    <label className="flex items-center gap-2 cursor-pointer text-xs p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                                         <input
                                             type="checkbox"
                                             checked={settings.showDiscord}
                                             onChange={(e) => updateSettings({ ...settings, showDiscord: e.target.checked })}
                                             className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                         />
+                                        <MessageCircle size={14} />
                                         <span className="text-gray-600 dark:text-gray-400">Discord</span>
                                     </label>
-                                    <label className="flex items-center gap-2 cursor-pointer text-xs">
+                                    <label className="flex items-center gap-2 cursor-pointer text-xs p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                                         <input
                                             type="checkbox"
                                             checked={settings.showFarcaster}
                                             onChange={(e) => updateSettings({ ...settings, showFarcaster: e.target.checked })}
                                             className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                         />
+                                        <ExternalLink size={14} />
                                         <span className="text-gray-600 dark:text-gray-400">Farcaster</span>
                                     </label>
-                                    <label className="flex items-center gap-2 cursor-pointer text-xs">
-                                        <input
-                                            type="checkbox"
-                                            checked={settings.showTelegram}
-                                            onChange={(e) => updateSettings({ ...settings, showTelegram: e.target.checked })}
-                                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                        />
-                                        <span className="text-gray-600 dark:text-gray-400">Telegram</span>
-                                    </label>
-                                    <label className="flex items-center gap-2 cursor-pointer text-xs">
+                                    <label className="flex items-center gap-2 cursor-pointer text-xs p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                                         <input
                                             type="checkbox"
                                             checked={settings.showDeBank}
                                             onChange={(e) => updateSettings({ ...settings, showDeBank: e.target.checked })}
                                             className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                         />
+                                        <Wallet size={14} />
                                         <span className="text-gray-600 dark:text-gray-400">DeBank</span>
                                     </label>
                                 </div>
                             </div>
                         </div>
+
+                        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-4">
+                            Settings are saved to your browser.
+                        </p>
                     </div>
                 )}
             </div>
 
             {/* Footer */}
-            <div className="mt-6 space-y-2">
+            <div className="mt-6 text-center space-y-1">
                 <div className="flex items-center justify-center gap-2">
                     <span className="text-xs text-gray-400 dark:text-gray-500">Created by 0xarshia.eth</span>
-                    <span className="text-gray-300 dark:text-gray-600">|</span>
                     <a
                         href="https://x.com/0xarshia"
                         target="_blank"
