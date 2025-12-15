@@ -2,12 +2,13 @@
 
 import { EthosProfile, getEthosData } from '@/lib/ethos';
 import { usePrivy } from '@privy-io/react-auth';
-import { Copy, Settings, Search, Check, ExternalLink, Loader2, Plus, Trash2, GripVertical, Sun, Moon, Monitor, X } from 'lucide-react';
+import { Copy, Settings, Search, Check, ExternalLink, Loader2, Plus, Trash2, GripVertical, Sun, Moon, Monitor, Pencil, X } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useRouter } from 'next/navigation';
 import { useTheme } from './ThemeProvider';
+import Image from 'next/image';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -27,15 +28,6 @@ const DiscordIcon = () => (
     </svg>
 );
 
-const FarcasterIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 1000 1000" fill="none">
-        <rect width="1000" height="1000" rx="200" fill="#855DCD" />
-        <path d="M257.778 155.556H742.222V844.445H671.111V528.889H670.414C662.554 441.677 589.258 373.333 500 373.333C410.742 373.333 337.446 441.677 329.586 528.889H328.889V844.445H257.778V155.556Z" fill="white" />
-        <path d="M128.889 253.333L157.778 351.111H182.222V746.667C169.949 746.667 160 756.616 160 768.889V795.556H155.556C143.283 795.556 133.333 805.505 133.333 817.778V844.445H382.222V817.778C382.222 805.505 372.273 795.556 360 795.556H355.556V768.889C355.556 756.616 345.606 746.667 333.333 746.667H306.667V253.333H128.889Z" fill="white" />
-        <path d="M871.111 253.333H693.333V746.667C681.06 746.667 671.111 756.616 671.111 768.889V795.556H666.667C654.394 795.556 644.444 805.505 644.444 817.778V844.445H893.333V817.778C893.333 805.505 883.384 795.556 871.111 795.556H866.667V768.889C866.667 756.616 856.717 746.667 844.444 746.667V351.111H868.889L897.778 253.333H871.111Z" fill="white" />
-    </svg>
-);
-
 const TelegramIcon = () => (
     <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
         <circle cx="24" cy="24" r="24" fill="#0088CC" />
@@ -43,12 +35,9 @@ const TelegramIcon = () => (
     </svg>
 );
 
-const DeBankIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 40 40" fill="none">
-        <circle cx="20" cy="20" r="20" fill="#FE815F" />
-        <path d="M11 11h10c4.97 0 9 4.03 9 9s-4.03 9-9 9H11V11zm4 4v10h6c2.76 0 5-2.24 5-5s-2.24-5-5-5h-6z" fill="white" />
-    </svg>
-);
+// Logo URLs provided by user
+const FARCASTER_LOGO = "https://thick-emerald-possum.myfilebase.com/ipfs/QmUV7JqLzNxSYFyogiguvZdSApzojtaU1Gu3BqjRJVVAvo";
+const DEBANK_LOGO = "https://thick-emerald-possum.myfilebase.com/ipfs/QmRSmtJMJzh542JP94725z7EdTWz3g1DUuAuRhAMtFB2Mf";
 
 // Common emojis for picker
 const EMOJI_OPTIONS = ['🔗', '🌐', '📧', '💼', '🎮', '🎵', '📸', '🎨', '💰', '🛒', '📱', '💻', '🎬', '📚', '✨', '🚀', '💎', '🔥', '⚡', '🌟'];
@@ -91,13 +80,8 @@ function getWallet(user: ReturnType<typeof usePrivy>['user']): string | null {
 async function getTelegramUsername(userId: string): Promise<string | null> {
     try {
         const res = await fetch(`/api/telegram?userId=${userId}`);
-        if (res.ok) {
-            const data = await res.json();
-            return data.username || null;
-        }
-    } catch (e) {
-        console.error('[Telegram] Error:', e);
-    }
+        if (res.ok) { const data = await res.json(); return data.username || null; }
+    } catch { }
     return null;
 }
 
@@ -105,30 +89,11 @@ async function getTelegramUsername(userId: string): Promise<string | null> {
 
 function ThemeToggle() {
     const { theme, setTheme } = useTheme();
-
     return (
-        <div className="flex items-center p-1 rounded-full bg-gray-100 dark:bg-gray-800">
-            <button
-                onClick={() => setTheme('light')}
-                className={cn("p-2 rounded-full transition-all", theme === 'light' ? "bg-white shadow text-yellow-500" : "text-gray-400 hover:text-gray-600")}
-                title="Light mode"
-            >
-                <Sun size={16} />
-            </button>
-            <button
-                onClick={() => setTheme('system')}
-                className={cn("p-2 rounded-full transition-all", theme === 'system' ? "bg-white dark:bg-gray-700 shadow text-blue-500" : "text-gray-400 hover:text-gray-600")}
-                title="System mode"
-            >
-                <Monitor size={16} />
-            </button>
-            <button
-                onClick={() => setTheme('dark')}
-                className={cn("p-2 rounded-full transition-all", theme === 'dark' ? "bg-gray-700 shadow text-purple-400" : "text-gray-400 hover:text-gray-600")}
-                title="Dark mode"
-            >
-                <Moon size={16} />
-            </button>
+        <div className="flex items-center gap-0.5 p-1 rounded-full bg-gray-100 dark:bg-gray-800">
+            <button onClick={() => setTheme('light')} className={cn("p-2 rounded-full transition-all", theme === 'light' ? "bg-white shadow text-amber-500" : "text-gray-400")} title="Light"><Sun size={14} /></button>
+            <button onClick={() => setTheme('system')} className={cn("p-2 rounded-full transition-all", theme === 'system' ? "bg-white dark:bg-gray-700 shadow text-blue-500" : "text-gray-400")} title="System"><Monitor size={14} /></button>
+            <button onClick={() => setTheme('dark')} className={cn("p-2 rounded-full transition-all", theme === 'dark' ? "bg-gray-700 shadow text-purple-400" : "text-gray-400")} title="Dark"><Moon size={14} /></button>
         </div>
     );
 }
@@ -145,7 +110,11 @@ function UserSearch() {
     const router = useRouter();
 
     const search = useCallback(async (query: string) => {
-        if (query.length < 2) { setResults([]); return; }
+        if (query.length < 2) {
+            setResults([]);
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         try {
             const res = await fetch(`https://api.ethos.network/api/v2/users/search?query=${encodeURIComponent(query)}&limit=5`, { headers: { 'X-Ethos-Client': 'trust-tree' } });
@@ -156,10 +125,21 @@ function UserSearch() {
                 })).filter((u: SearchResult) => u.username));
             }
         } catch { }
-        setLoading(false);
+        finally {
+            setLoading(false);
+        }
     }, []);
 
-    useEffect(() => { const t = setTimeout(() => search(q), 200); return () => clearTimeout(t); }, [q, search]);
+    useEffect(() => {
+        if (q.length < 2) {
+            setLoading(false);
+            setResults([]);
+            return;
+        }
+        setLoading(true);
+        const t = setTimeout(() => search(q), 300);
+        return () => clearTimeout(t);
+    }, [q, search]);
 
     return (
         <div className="relative flex-1">
@@ -188,27 +168,6 @@ function UserSearch() {
     );
 }
 
-// ========== EMOJI PICKER ==========
-
-function EmojiPicker({ value, onChange, onClose }: { value: string; onChange: (emoji: string) => void; onClose: () => void }) {
-    return (
-        <div className="absolute top-full left-0 mt-2 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50">
-            <div className="grid grid-cols-5 gap-2 mb-3">
-                {EMOJI_OPTIONS.map(emoji => (
-                    <button key={emoji} onClick={() => onChange(emoji)}
-                        className={cn("w-9 h-9 rounded-lg text-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all", value === emoji && "bg-blue-100 dark:bg-blue-900")}>
-                        {emoji}
-                    </button>
-                ))}
-            </div>
-            <div className="flex gap-2">
-                <button onClick={onClose} className="flex-1 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">Cancel</button>
-                <button onClick={onClose} className="flex-1 h-8 rounded-lg bg-blue-500 text-sm text-white hover:bg-blue-600">Done</button>
-            </div>
-        </div>
-    );
-}
-
 // ========== PROFILE CARD ==========
 
 export function ProfileCard({ initialProfile }: ProfileCardProps) {
@@ -222,13 +181,14 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     const [telegramUsername, setTelegramUsername] = useState<string | null>(null);
     const [telegramLoading, setTelegramLoading] = useState(false);
     const [customLinks, setCustomLinks] = useState<CustomLink[]>([]);
-    const [newLinkTitle, setNewLinkTitle] = useState('');
-    const [newLinkUrl, setNewLinkUrl] = useState('');
-    const [newLinkEmoji, setNewLinkEmoji] = useState('🔗');
-    const [showAddLink, setShowAddLink] = useState(false);
-    const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
-    const [editEmoji, setEditEmoji] = useState('');
-    const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
+
+    // Add/Edit link state
+    const [showLinkForm, setShowLinkForm] = useState(false);
+    const [editingLink, setEditingLink] = useState<CustomLink | null>(null);
+    const [formEmoji, setFormEmoji] = useState('🔗');
+    const [formTitle, setFormTitle] = useState('');
+    const [formUrl, setFormUrl] = useState('');
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [draggedLink, setDraggedLink] = useState<string | null>(null);
 
     const wallet = getWallet(user);
@@ -239,15 +199,11 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     useEffect(() => { if (ready && authenticated && myProfile?.username && dp.username) { setIsOwner(myProfile.username.toLowerCase() === dp.username.toLowerCase()); } else if (ready && authenticated && !initialProfile && profile) { setIsOwner(true); } else setIsOwner(false); }, [ready, authenticated, myProfile, dp, initialProfile, profile]);
     useEffect(() => { if (profileId) { setSettings(loadSettings(profileId)); setCustomLinks(loadCustomLinks(profileId)); } }, [profileId]);
 
-    // Telegram username resolution
     const telegram = dp.linkedAccounts.find(a => a.service === 'telegram');
     useEffect(() => {
         if (telegram?.username) {
             setTelegramLoading(true);
-            getTelegramUsername(telegram.username).then(username => {
-                setTelegramUsername(username);
-                setTelegramLoading(false);
-            });
+            getTelegramUsername(telegram.username).then(username => { setTelegramUsername(username); setTelegramLoading(false); });
         }
     }, [telegram?.username]);
 
@@ -255,34 +211,42 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     const updateLinks = (links: CustomLink[]) => { setCustomLinks(links); saveCustomLinks(profileId, links); };
     const copy = () => { navigator.clipboard.writeText(dp.username ? `${window.location.origin}/${dp.username}` : window.location.href); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
-    const addLink = () => {
-        if (!newLinkTitle || !newLinkUrl) return;
-        const newLink: CustomLink = { id: Date.now().toString(), title: newLinkTitle, url: newLinkUrl.startsWith('http') ? newLinkUrl : `https://${newLinkUrl}`, emoji: newLinkEmoji };
-        updateLinks([...customLinks, newLink]);
-        setNewLinkTitle(''); setNewLinkUrl(''); setNewLinkEmoji('🔗'); setShowAddLink(false);
+    const openAddForm = () => {
+        setEditingLink(null);
+        setFormEmoji('🔗');
+        setFormTitle('');
+        setFormUrl('');
+        setShowLinkForm(true);
+    };
+
+    const openEditForm = (link: CustomLink) => {
+        setEditingLink(link);
+        setFormEmoji(link.emoji);
+        setFormTitle(link.title);
+        setFormUrl(link.url);
+        setShowLinkForm(true);
+    };
+
+    const saveLink = () => {
+        if (!formTitle || !formUrl) return;
+        const url = formUrl.startsWith('http') ? formUrl : `https://${formUrl}`;
+
+        if (editingLink) {
+            updateLinks(customLinks.map(l => l.id === editingLink.id ? { ...l, emoji: formEmoji, title: formTitle, url } : l));
+        } else {
+            updateLinks([...customLinks, { id: Date.now().toString(), emoji: formEmoji, title: formTitle, url }]);
+        }
+        setShowLinkForm(false);
+        setShowEmojiPicker(false);
+    };
+
+    const cancelForm = () => {
+        setShowLinkForm(false);
+        setShowEmojiPicker(false);
+        setEditingLink(null);
     };
 
     const removeLink = (id: string) => updateLinks(customLinks.filter(l => l.id !== id));
-
-    const startEditEmoji = (link: CustomLink) => {
-        setEditingLinkId(link.id);
-        setEditEmoji(link.emoji);
-        setShowEmojiPicker(link.id);
-    };
-
-    const saveEmojiEdit = () => {
-        if (editingLinkId && editEmoji) {
-            updateLinks(customLinks.map(l => l.id === editingLinkId ? { ...l, emoji: editEmoji } : l));
-        }
-        setEditingLinkId(null);
-        setShowEmojiPicker(null);
-    };
-
-    const cancelEmojiEdit = () => {
-        setEditingLinkId(null);
-        setShowEmojiPicker(null);
-        setEditEmoji('');
-    };
 
     const handleDragStart = (id: string) => setDraggedLink(id);
     const handleDragOver = (e: React.DragEvent, targetId: string) => {
@@ -358,7 +322,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         {settings.showFarcaster && farcaster?.username && (
                             <a href={`https://warpcast.com/${farcaster.username}`} target="_blank" rel="noopener noreferrer"
                                 className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-[#855DCD] transition-all overflow-hidden">
-                                <FarcasterIcon />
+                                <img src={FARCASTER_LOGO} alt="Farcaster" className="w-6 h-6" />
                             </a>
                         )}
                         {settings.showTelegram && telegram?.username && (
@@ -372,7 +336,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                                     <Loader2 size={18} className="text-[#0088CC] animate-spin" />
                                 </div>
                             ) : (
-                                <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center opacity-50" title="Telegram connected">
+                                <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center opacity-50">
                                     <TelegramIcon />
                                 </div>
                             )
@@ -380,7 +344,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         {settings.showDeBank && dp.primaryAddress && (
                             <a href={`https://debank.com/profile/${dp.primaryAddress}`} target="_blank" rel="noopener noreferrer"
                                 className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-[#FE815F] transition-all overflow-hidden">
-                                <DeBankIcon />
+                                <img src={DEBANK_LOGO} alt="DeBank" className="w-6 h-6" />
                             </a>
                         )}
                     </div>
@@ -392,7 +356,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                                 <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer"
                                     className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all group">
                                     <span className="text-xl">{link.emoji}</span>
-                                    <span className="flex-1 text-sm font-medium text-gray-800 dark:text-white">{link.title}</span>
+                                    <span className="flex-1 text-sm font-medium text-gray-800 dark:text-white text-left">{link.title}</span>
                                     <ExternalLink size={14} className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-white" />
                                 </a>
                             ))}
@@ -421,19 +385,15 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         <div>
                             <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wider">Show/Hide</p>
                             <div className="grid grid-cols-2 gap-2">
-                                {([
-                                    ['showX', 'X', XIcon],
-                                    ['showDiscord', 'Discord', DiscordIcon],
-                                    ['showFarcaster', 'Farcaster', FarcasterIcon],
-                                    ['showTelegram', 'Telegram', TelegramIcon],
-                                    ['showDeBank', 'DeBank', DeBankIcon],
-                                ] as const).map(([key, label, Icon]) => (
-                                    <label key={key} className="flex items-center gap-2 p-3 rounded-xl bg-white dark:bg-gray-800 cursor-pointer text-sm">
-                                        <input type="checkbox" checked={settings[key]} onChange={e => update({ ...settings, [key]: e.target.checked })} className="rounded text-blue-500" />
-                                        <Icon />
-                                        <span className="text-gray-700 dark:text-white">{label}</span>
-                                    </label>
-                                ))}
+                                {(['showX', 'showDiscord', 'showFarcaster', 'showTelegram', 'showDeBank'] as const).map((key) => {
+                                    const labels: Record<string, string> = { showX: 'X', showDiscord: 'Discord', showFarcaster: 'Farcaster', showTelegram: 'Telegram', showDeBank: 'DeBank' };
+                                    return (
+                                        <label key={key} className="flex items-center gap-2 p-3 rounded-xl bg-white dark:bg-gray-800 cursor-pointer text-sm">
+                                            <input type="checkbox" checked={settings[key]} onChange={e => update({ ...settings, [key]: e.target.checked })} className="rounded text-blue-500" />
+                                            <span className="text-gray-700 dark:text-white">{labels[key]}</span>
+                                        </label>
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -441,44 +401,58 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         <div>
                             <div className="flex items-center justify-between mb-3">
                                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Custom Links</p>
-                                <button onClick={() => setShowAddLink(!showAddLink)} className="text-blue-500 text-sm font-medium flex items-center gap-1">
+                                <button onClick={openAddForm} className="text-blue-500 text-sm font-medium flex items-center gap-1">
                                     <Plus size={14} /> Add
                                 </button>
                             </div>
 
-                            {showAddLink && (
-                                <div className="space-y-2 mb-4 p-4 rounded-xl bg-white dark:bg-gray-800">
-                                    <div className="flex gap-2">
+                            {/* Add/Edit Form */}
+                            {showLinkForm && (
+                                <div className="mb-4 p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                                    <p className="text-xs font-medium text-gray-500 mb-3">{editingLink ? 'Edit Link' : 'Add New Link'}</p>
+
+                                    <div className="flex gap-2 mb-2">
+                                        {/* Emoji Button */}
                                         <div className="relative">
-                                            <button onClick={() => setShowEmojiPicker('new')} className="w-12 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 text-xl flex items-center justify-center">{newLinkEmoji}</button>
-                                            {showEmojiPicker === 'new' && (
-                                                <EmojiPicker value={newLinkEmoji} onChange={setNewLinkEmoji} onClose={() => setShowEmojiPicker(null)} />
+                                            <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="w-12 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 text-xl flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600">
+                                                {formEmoji}
+                                            </button>
+                                            {showEmojiPicker && (
+                                                <div className="absolute top-12 left-0 p-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 w-48">
+                                                    <div className="grid grid-cols-5 gap-1">
+                                                        {EMOJI_OPTIONS.map(e => (
+                                                            <button key={e} onClick={() => { setFormEmoji(e); setShowEmojiPicker(false); }}
+                                                                className={cn("w-8 h-8 rounded text-lg hover:bg-gray-100 dark:hover:bg-gray-700", formEmoji === e && "bg-blue-100 dark:bg-blue-900")}>
+                                                                {e}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
                                             )}
                                         </div>
-                                        <input type="text" value={newLinkTitle} onChange={e => setNewLinkTitle(e.target.value)} placeholder="Title" className="flex-1 h-10 px-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm" />
+                                        <input type="text" value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder="Title" className="flex-1 h-10 px-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm border-0 focus:ring-2 focus:ring-blue-500" />
                                     </div>
-                                    <input type="text" value={newLinkUrl} onChange={e => setNewLinkUrl(e.target.value)} placeholder="https://..." className="w-full h-10 px-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm" />
+
+                                    <input type="text" value={formUrl} onChange={e => setFormUrl(e.target.value)} placeholder="https://example.com" className="w-full h-10 px-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm mb-3 border-0 focus:ring-2 focus:ring-blue-500" />
+
                                     <div className="flex gap-2">
-                                        <button onClick={() => setShowAddLink(false)} className="flex-1 h-10 rounded-lg bg-gray-200 dark:bg-gray-600 text-sm">Cancel</button>
-                                        <button onClick={addLink} className="flex-1 h-10 rounded-lg bg-blue-500 text-white text-sm">Save</button>
+                                        <button onClick={cancelForm} className="flex-1 h-9 rounded-lg bg-gray-200 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">Cancel</button>
+                                        <button onClick={saveLink} className="flex-1 h-9 rounded-lg bg-blue-500 text-sm text-white hover:bg-blue-600">Save</button>
                                     </div>
                                 </div>
                             )}
 
+                            {/* Links List */}
                             {customLinks.length > 0 && (
                                 <div className="space-y-2">
                                     {customLinks.map(link => (
                                         <div key={link.id} draggable onDragStart={() => handleDragStart(link.id)} onDragOver={e => handleDragOver(e, link.id)} onDragEnd={handleDragEnd}
-                                            className={cn("flex items-center gap-2 p-3 rounded-xl bg-white dark:bg-gray-800 cursor-grab", draggedLink === link.id && "opacity-50")}>
-                                            <GripVertical size={14} className="text-gray-400" />
-                                            <div className="relative">
-                                                <button onClick={() => startEditEmoji(link)} className="text-xl hover:scale-110 transition-transform">{link.emoji}</button>
-                                                {showEmojiPicker === link.id && (
-                                                    <EmojiPicker value={editEmoji} onChange={setEditEmoji} onClose={saveEmojiEdit} />
-                                                )}
-                                            </div>
+                                            className={cn("flex items-center gap-2 p-3 rounded-xl bg-white dark:bg-gray-800 cursor-grab group", draggedLink === link.id && "opacity-50 scale-95")}>
+                                            <GripVertical size={14} className="text-gray-400 flex-shrink-0" />
+                                            <span className="text-lg flex-shrink-0">{link.emoji}</span>
                                             <span className="flex-1 text-sm text-gray-700 dark:text-white truncate">{link.title}</span>
-                                            <button onClick={() => removeLink(link.id)} className="text-red-500 hover:text-red-600 p-1"><Trash2 size={14} /></button>
+                                            <button onClick={() => openEditForm(link)} className="text-gray-400 hover:text-blue-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity"><Pencil size={14} /></button>
+                                            <button onClick={() => removeLink(link.id)} className="text-gray-400 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={14} /></button>
                                         </div>
                                     ))}
                                 </div>
