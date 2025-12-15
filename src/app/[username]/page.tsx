@@ -153,7 +153,7 @@ export default function UserProfilePage() {
                 </div>
 
                 {/* Profile Card */}
-                <ProfileCard initialProfile={profile} isOwner={isOwner} />
+                <ProfileCard initialProfile={profile} />
             </div>
         </main>
     );

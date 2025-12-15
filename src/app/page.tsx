@@ -105,7 +105,7 @@ export default function Home() {
 
         {/* When authenticated but still on home, show profile card */}
         {authenticated && !isRedirecting && (
-          <ProfileCard isOwner={true} />
+          <ProfileCard />
         )}
 
         {/* Footer */}
