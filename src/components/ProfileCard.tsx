@@ -15,7 +15,7 @@ function cn(...inputs: ClassValue[]) {
 
 // ========== BRAND SVG ICONS ==========
 
-const XIcon = ({ size = 16 }: { size?: number }) => (
+const XIcon = ({ size = 20 }: { size?: number }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </svg>
@@ -28,15 +28,14 @@ const DiscordIcon = () => (
 );
 
 const TelegramIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
-        <circle cx="24" cy="24" r="24" fill="#0088CC" />
-        <path d="M10.9 23.3c6.5-2.8 10.8-4.7 13-5.6 6.2-2.6 7.5-3 8.3-3 .2 0 .6 0 .9.3.2.2.3.5.3.7v.6c-.2 2.5-1.2 8.5-1.7 11.3-.2 1.2-.6 1.6-1.1 1.6-.9.1-1.6-.6-2.5-1.2-1.4-.9-2.2-1.5-3.5-2.4-1.5-1-.6-1.6.3-2.5.2-.2 4.2-3.9 4.3-4.2 0-.1 0-.2-.1-.3-.1 0-.2 0-.3 0-.1 0-2.3 1.5-6.6 4.4-.6.4-1.2.6-1.7.6-.6 0-1.6-.3-2.4-.6-1-.3-1.8-.5-1.7-1 0-.3.4-.6 1.1-.9z" fill="white" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
     </svg>
 );
 
-// Logo URLs
-const FARCASTER_LOGO = "https://thick-emerald-possum.myfilebase.com/ipfs/QmUV7JqLzNxSYFyogiguvZdSApzojtaU1Gu3BqjRJVVAvo";
-const DEBANK_LOGO = "https://thick-emerald-possum.myfilebase.com/ipfs/QmRSmtJMJzh542JP94725z7EdTWz3g1DUuAuRhAMtFB2Mf";
+// Logo URLs - user provided IPFS links
+const FARCASTER_LOGO = "https://thick-emerald-possum.myfilebase.com/ipfs/QmdoPVt3qcqi9XJcdhEQXUaXu6NvFPjsXzxmjvvUdUQoqP";
+const DEBANK_LOGO = "https://thick-emerald-possum.myfilebase.com/ipfs/QmS1TQt75xygZ41BYfNZfXiNwFzTcjcP2YbfjPCypAzHDC";
 
 const EMOJI_OPTIONS = ['🔗', '🌐', '📧', '💼', '🎮', '🎵', '📸', '🎨', '💰', '🛒', '📱', '💻', '🎬', '📚', '✨', '🚀', '💎', '🔥', '⚡', '🌟'];
 
@@ -79,10 +78,8 @@ async function getTelegramUsername(userId: string): Promise<string | null> {
     try {
         const res = await fetch(`/api/telegram?userId=${userId}`);
         const data = await res.json();
-        console.log('[Telegram] API response:', data);
         return data.username || null;
-    } catch (e) {
-        console.error('[Telegram] Error:', e);
+    } catch {
         return null;
     }
 }
@@ -112,38 +109,21 @@ function UserSearch() {
     const router = useRouter();
 
     useEffect(() => {
-        if (q.length < 2) {
-            setIsLoading(false);
-            setResults([]);
-            return;
-        }
-
+        if (q.length < 2) { setIsLoading(false); setResults([]); return; }
         setIsLoading(true);
         const controller = new AbortController();
-
         const timeoutId = setTimeout(async () => {
             try {
-                const res = await fetch(
-                    `https://api.ethos.network/api/v2/users/search?query=${encodeURIComponent(q)}&limit=5`,
-                    { headers: { 'X-Ethos-Client': 'trust-tree' }, signal: controller.signal }
-                );
+                const res = await fetch(`https://api.ethos.network/api/v2/users/search?query=${encodeURIComponent(q)}&limit=5`, { headers: { 'X-Ethos-Client': 'trust-tree' }, signal: controller.signal });
                 if (res.ok) {
                     const data = await res.json();
                     setResults((data.values || []).slice(0, 5).map((u: { username?: string; displayName?: string; avatarUrl?: string; score?: number }) => ({
                         username: u.username || '', displayName: u.displayName, avatarUrl: u.avatarUrl, score: u.score || 0,
                     })).filter((u: SearchResult) => u.username));
                 }
-            } catch (e) {
-                if (e instanceof Error && e.name !== 'AbortError') console.error(e);
-            } finally {
-                setIsLoading(false);
-            }
+            } catch { } finally { setIsLoading(false); }
         }, 300);
-
-        return () => {
-            clearTimeout(timeoutId);
-            controller.abort();
-        };
+        return () => { clearTimeout(timeoutId); controller.abort(); };
     }, [q]);
 
     return (
@@ -152,11 +132,7 @@ function UserSearch() {
                 <input type="text" value={q} onChange={e => { setQ(e.target.value); setShow(true); }} onFocus={() => setShow(true)} onBlur={() => setTimeout(() => setShow(false), 200)} placeholder="Search users..."
                     className="w-full h-11 px-4 pl-10 rounded-full bg-gray-100 dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
                 <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                {isLoading && (
-                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                        <Loader2 size={16} className="text-blue-500 animate-spin" />
-                    </div>
-                )}
+                {isLoading && <Loader2 size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-blue-500 animate-spin" />}
             </div>
             {show && results.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
@@ -211,10 +187,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     useEffect(() => {
         if (telegram?.username) {
             setTelegramLoading(true);
-            getTelegramUsername(telegram.username).then(username => {
-                setTelegramUsername(username);
-                setTelegramLoading(false);
-            });
+            getTelegramUsername(telegram.username).then(username => { setTelegramUsername(username); setTelegramLoading(false); });
         }
     }, [telegram?.username]);
 
@@ -224,7 +197,6 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
 
     const openAddForm = () => { setEditingLink(null); setFormEmoji('🔗'); setFormTitle(''); setFormUrl(''); setShowLinkForm(true); };
     const openEditForm = (link: CustomLink) => { setEditingLink(link); setFormEmoji(link.emoji); setFormTitle(link.title); setFormUrl(link.url); setShowLinkForm(true); };
-
     const saveLink = () => {
         if (!formTitle || !formUrl) return;
         const url = formUrl.startsWith('http') ? formUrl : `https://${formUrl}`;
@@ -232,7 +204,6 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
         else { updateLinks([...customLinks, { id: Date.now().toString(), emoji: formEmoji, title: formTitle, url }]); }
         setShowLinkForm(false); setShowEmojiPicker(false);
     };
-
     const cancelForm = () => { setShowLinkForm(false); setShowEmojiPicker(false); setEditingLink(null); };
     const removeLink = (id: string) => updateLinks(customLinks.filter(l => l.id !== id));
 
@@ -253,8 +224,9 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     const farcaster = dp.linkedAccounts.find(a => a.service === 'farcaster');
     const canEdit = authenticated && isOwner;
 
-    // Button style for all social icons
-    const socialBtnClass = "w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center transition-all overflow-hidden";
+    // Consistent button style - all same size, same padding
+    const btnBase = "w-11 h-11 rounded-full flex items-center justify-center transition-all overflow-hidden";
+    const btnBg = "bg-gray-100 dark:bg-gray-800";
 
     return (
         <div className="w-full max-w-md mx-auto px-4">
@@ -292,46 +264,46 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         </div>
                     </div>
 
-                    {/* Social Icons - All Circular */}
-                    <div className="flex gap-3 mb-6">
+                    {/* Social Icons - All consistent size */}
+                    <div className="flex gap-2.5 mb-6">
                         {settings.showX && dp.username && (
                             <a href={`https://x.com/${dp.username}`} target="_blank" rel="noopener noreferrer"
-                                className={cn(socialBtnClass, "text-gray-700 dark:text-white hover:bg-black hover:text-white")}>
+                                className={cn(btnBase, btnBg, "text-gray-700 dark:text-white hover:bg-black hover:text-white")}>
                                 <XIcon size={18} />
                             </a>
                         )}
                         {settings.showDiscord && discord?.username && (
                             <a href={`https://discord.com/users/${discord.username}`} target="_blank" rel="noopener noreferrer"
-                                className={cn(socialBtnClass, "text-[#5865F2] hover:bg-[#5865F2] hover:text-white")}>
+                                className={cn(btnBase, btnBg, "text-[#5865F2] hover:bg-[#5865F2] hover:text-white")}>
                                 <DiscordIcon />
                             </a>
                         )}
                         {settings.showFarcaster && farcaster?.username && (
                             <a href={`https://warpcast.com/${farcaster.username}`} target="_blank" rel="noopener noreferrer"
-                                className={cn(socialBtnClass, "hover:bg-[#855DCD] p-0")}>
-                                <img src={FARCASTER_LOGO} alt="Farcaster" className="w-full h-full rounded-full object-cover" />
+                                className={cn(btnBase, "hover:scale-105")}>
+                                <img src={FARCASTER_LOGO} alt="Farcaster" className="w-full h-full object-cover" />
                             </a>
                         )}
                         {settings.showTelegram && telegram?.username && (
                             telegramUsername ? (
                                 <a href={`https://t.me/${telegramUsername}`} target="_blank" rel="noopener noreferrer"
-                                    className={cn(socialBtnClass, "hover:bg-[#0088CC] p-0")}>
+                                    className={cn(btnBase, btnBg, "text-[#0088CC] hover:bg-[#0088CC] hover:text-white")}>
                                     <TelegramIcon />
                                 </a>
                             ) : telegramLoading ? (
-                                <div className={socialBtnClass}>
+                                <div className={cn(btnBase, btnBg)}>
                                     <Loader2 size={18} className="text-[#0088CC] animate-spin" />
                                 </div>
                             ) : (
-                                <div className={cn(socialBtnClass, "opacity-50 cursor-not-allowed")} title="Telegram ID (username unavailable)">
+                                <div className={cn(btnBase, btnBg, "opacity-50")} title="Telegram connected">
                                     <TelegramIcon />
                                 </div>
                             )
                         )}
                         {settings.showDeBank && dp.primaryAddress && (
                             <a href={`https://debank.com/profile/${dp.primaryAddress}`} target="_blank" rel="noopener noreferrer"
-                                className={cn(socialBtnClass, "hover:bg-[#FE815F] p-0")}>
-                                <img src={DEBANK_LOGO} alt="DeBank" className="w-full h-full rounded-full object-cover" />
+                                className={cn(btnBase, "hover:scale-105")}>
+                                <img src={DEBANK_LOGO} alt="DeBank" className="w-full h-full object-cover" />
                             </a>
                         )}
                     </div>
