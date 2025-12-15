@@ -2,7 +2,7 @@
 
 import { EthosProfile, getEthosData } from '@/lib/ethos';
 import { usePrivy } from '@privy-io/react-auth';
-import { Copy, Settings, Search, Check, ExternalLink, Loader2 } from 'lucide-react';
+import { Copy, Settings, Search, Check, ExternalLink, Loader2, Plus, Link, Trash2 } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -14,7 +14,7 @@ function cn(...inputs: ClassValue[]) {
 
 // ========== OFFICIAL BRAND SVG ICONS ==========
 
-// X (Twitter) - Official rebrand logo 2023
+// X (Twitter) - Official 2023 logo
 const XIcon = ({ size = 16 }: { size?: number }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -28,45 +28,72 @@ const DiscordIcon = () => (
     </svg>
 );
 
-// Farcaster - Official purple arch logo
+// Farcaster - New modern logo (purple)
 const FarcasterIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 1000 1000" fill="currentColor">
-        <path d="M257.778 155.556H742.222V844.445H671.111V528.889H670.414C662.554 441.677 589.258 373.333 500 373.333C410.742 373.333 337.446 441.677 329.586 528.889H328.889V844.445H257.778V155.556Z" />
-        <path d="M128.889 253.333L157.778 351.111H182.222V746.667C169.949 746.667 160 756.616 160 768.889V795.556H155.556C143.283 795.556 133.333 805.505 133.333 817.778V844.445H382.222V817.778C382.222 805.505 372.273 795.556 360 795.556H355.556V768.889C355.556 756.616 345.606 746.667 333.333 746.667H306.667V253.333H128.889Z" />
-        <path d="M871.111 253.333H693.333V746.667C681.06 746.667 671.111 756.616 671.111 768.889V795.556H666.667C654.394 795.556 644.444 805.505 644.444 817.778V844.445H893.333V817.778C893.333 805.505 883.384 795.556 871.111 795.556H866.667V768.889C866.667 756.616 856.717 746.667 844.444 746.667V351.111H868.889L897.778 253.333H871.111Z" />
+    <svg width="18" height="18" viewBox="0 0 1260 1260" fill="currentColor">
+        <path d="M947.747 1259.61H311.861C139.901 1259.61 0 1119.72 0 947.752V311.871C0 139.907 139.901 0.00585938 311.861 0.00585938H947.747C1119.71 0.00585938 1259.61 139.907 1259.61 311.871V947.752C1259.61 1119.72 1119.71 1259.61 947.747 1259.61Z" fill="#855DCD" />
+        <path d="M826.513 398.633L764.404 631.889L826.513 398.633H433.108L371.001 631.889L433.108 398.633H826.513ZM826.513 398.633H893.47V816.082C893.47 842.096 872.476 863.089 846.463 863.089H826.513H433.108H413.158C387.145 863.089 366.151 842.096 366.151 816.082V398.633H433.108" fill="#855DCD" />
+        <path d="M433.108 631.889H826.513" stroke="white" strokeWidth="83.7044" strokeLinecap="round" />
+        <path d="M705.152 631.889V758.613C705.152 791.248 678.735 817.665 646.1 817.665H612.87C580.235 817.665 553.818 791.248 553.818 758.613V631.889" stroke="white" strokeWidth="83.7044" strokeLinecap="round" />
     </svg>
 );
 
-// Telegram - Official paper plane
+// Telegram - Official logo
 const TelegramIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
         <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
     </svg>
 );
 
-// DeBank - Simple D logo
+// DeBank - Official orange "D" with rabbit ears
 const DeBankIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2 15h-4V7h4c2.76 0 5 2.24 5 5s-2.24 5-5 5zm0-8h-2v6h2c1.66 0 3-1.34 3-3s-1.34-3-3-3z" />
+    <svg width="18" height="18" viewBox="0 0 40 40" fill="currentColor">
+        <circle cx="20" cy="20" r="20" fill="#FE815F" />
+        <path d="M11 11h10c4.97 0 9 4.03 9 9s-4.03 9-9 9H11V11zm4 4v10h6c2.76 0 5-2.24 5-5s-2.24-5-5-5h-6z" fill="white" />
     </svg>
 );
 
 // ========== INTERFACES ==========
 
 interface ProfileCardProps { initialProfile?: EthosProfile; }
-interface ProfileSettings { showX: boolean; showDiscord: boolean; showFarcaster: boolean; showTelegram: boolean; showDeBank: boolean; }
+
+interface ProfileSettings {
+    showX: boolean;
+    showDiscord: boolean;
+    showFarcaster: boolean;
+    showTelegram: boolean;
+    showDeBank: boolean;
+}
+
+interface CustomLink {
+    id: string;
+    title: string;
+    url: string;
+    emoji: string;
+}
 
 const defaultSettings: ProfileSettings = { showX: true, showDiscord: true, showFarcaster: true, showTelegram: true, showDeBank: true };
 
 function loadSettings(id: string): ProfileSettings {
     if (typeof window === 'undefined') return defaultSettings;
-    try { const s = localStorage.getItem(`tt-${id}`); if (s) return { ...defaultSettings, ...JSON.parse(s) }; } catch { }
+    try { const s = localStorage.getItem(`tt-settings-${id}`); if (s) return { ...defaultSettings, ...JSON.parse(s) }; } catch { }
     return defaultSettings;
 }
 
 function saveSettings(id: string, s: ProfileSettings) {
     if (typeof window === 'undefined') return;
-    try { localStorage.setItem(`tt-${id}`, JSON.stringify(s)); } catch { }
+    try { localStorage.setItem(`tt-settings-${id}`, JSON.stringify(s)); } catch { }
+}
+
+function loadCustomLinks(id: string): CustomLink[] {
+    if (typeof window === 'undefined') return [];
+    try { const s = localStorage.getItem(`tt-links-${id}`); if (s) return JSON.parse(s); } catch { }
+    return [];
+}
+
+function saveCustomLinks(id: string, links: CustomLink[]) {
+    if (typeof window === 'undefined') return;
+    try { localStorage.setItem(`tt-links-${id}`, JSON.stringify(links)); } catch { }
 }
 
 function getWallet(user: ReturnType<typeof usePrivy>['user']): string | null {
@@ -76,6 +103,19 @@ function getWallet(user: ReturnType<typeof usePrivy>['user']): string | null {
     const wa = user.linkedAccounts?.find(a => a.type === 'wallet' && 'address' in a);
     if (wa && 'address' in wa) return (wa as { address: string }).address;
     return user.wallet?.address || null;
+}
+
+// ========== TELEGRAM USERNAME RESOLVER ==========
+
+async function getTelegramUsername(userId: string): Promise<string | null> {
+    try {
+        const res = await fetch(`/api/telegram?userId=${userId}`);
+        if (res.ok) {
+            const data = await res.json();
+            return data.username || null;
+        }
+    } catch { }
+    return null;
 }
 
 // ========== SEARCH COMPONENT ==========
@@ -109,25 +149,19 @@ function UserSearch() {
     return (
         <div className="relative w-full max-w-sm mx-auto mb-8">
             <div className="relative">
-                <input
-                    type="text" value={q}
-                    onChange={e => { setQ(e.target.value); setShow(true); }}
-                    onFocus={() => setShow(true)}
-                    onBlur={() => setTimeout(() => setShow(false), 150)}
-                    placeholder="Search users..."
-                    className="w-full h-12 px-5 pl-12 rounded-2xl bg-white/70 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/20 text-[15px] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 shadow-lg shadow-black/5 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
-                />
+                <input type="text" value={q} onChange={e => { setQ(e.target.value); setShow(true); }} onFocus={() => setShow(true)} onBlur={() => setTimeout(() => setShow(false), 150)} placeholder="Search users..."
+                    className="w-full h-12 px-5 pl-12 rounded-2xl bg-white/70 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/20 text-[15px] text-gray-900 dark:text-white placeholder-gray-500 shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all" />
                 <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 {loading && <Loader2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-500 animate-spin" />}
             </div>
 
             {show && results.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/30 dark:border-white/10 overflow-hidden z-50">
+                <div className="absolute top-full left-0 right-0 mt-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/30 overflow-hidden z-50">
                     {results.map(u => (
                         <button key={u.username} onMouseDown={() => { setShow(false); setQ(''); router.push(`/${u.username}`); }}
                             className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-white/50 dark:hover:bg-white/10 transition-all">
                             {u.avatarUrl ? <img src={u.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover ring-2 ring-white/50" />
-                                : <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold ring-2 ring-white/50">{u.username.substring(0, 2).toUpperCase()}</div>}
+                                : <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold">{u.username.substring(0, 2).toUpperCase()}</div>}
                             <div className="flex-1 text-left">
                                 <p className="text-[15px] font-medium text-gray-900 dark:text-white">{u.displayName || u.username}</p>
                                 <p className="text-[13px] text-gray-500">@{u.username} · {u.score} score</p>
@@ -150,20 +184,54 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
     const [showSettings, setShowSettings] = useState(false);
     const [isOwner, setIsOwner] = useState(false);
     const [myProfile, setMyProfile] = useState<EthosProfile | null>(null);
+    const [telegramUsername, setTelegramUsername] = useState<string | null>(null);
+    const [customLinks, setCustomLinks] = useState<CustomLink[]>([]);
+    const [newLinkTitle, setNewLinkTitle] = useState('');
+    const [newLinkUrl, setNewLinkUrl] = useState('');
+    const [newLinkEmoji, setNewLinkEmoji] = useState('🔗');
+    const [showAddLink, setShowAddLink] = useState(false);
 
     const wallet = getWallet(user);
     const dp = profile || initialProfile || { id: 'Guest', score: 0, vouchCount: 0, linkedAccounts: [] };
+    const profileId = dp.id || dp.username || wallet || 'guest';
 
+    // Fetch profile
     useEffect(() => { if (authenticated && wallet) { getEthosData(wallet).then(d => { if (d) { setMyProfile(d); if (!initialProfile) setProfile(d); } }); } }, [authenticated, wallet, initialProfile]);
-    useEffect(() => { if (ready && authenticated && myProfile?.username && dp.username) { setIsOwner(myProfile.username.toLowerCase() === dp.username.toLowerCase()); } else if (ready && authenticated && !initialProfile && profile) { setIsOwner(true); } else setIsOwner(false); }, [ready, authenticated, myProfile, dp, initialProfile, profile]);
-    useEffect(() => { const id = dp.id || dp.username || wallet; if (id) setSettings(loadSettings(id)); }, [dp, wallet]);
 
-    const update = (s: ProfileSettings) => { setSettings(s); const id = dp.id || dp.username || wallet; if (id) saveSettings(id, s); };
+    // Check ownership
+    useEffect(() => { if (ready && authenticated && myProfile?.username && dp.username) { setIsOwner(myProfile.username.toLowerCase() === dp.username.toLowerCase()); } else if (ready && authenticated && !initialProfile && profile) { setIsOwner(true); } else setIsOwner(false); }, [ready, authenticated, myProfile, dp, initialProfile, profile]);
+
+    // Load settings & links
+    useEffect(() => { if (profileId) { setSettings(loadSettings(profileId)); setCustomLinks(loadCustomLinks(profileId)); } }, [profileId]);
+
+    // Resolve Telegram username
+    const telegram = dp.linkedAccounts.find(a => a.service === 'telegram');
+    useEffect(() => {
+        if (telegram?.username) {
+            getTelegramUsername(telegram.username).then(setTelegramUsername);
+        }
+    }, [telegram?.username]);
+
+    const update = (s: ProfileSettings) => { setSettings(s); saveSettings(profileId, s); };
     const copy = () => { navigator.clipboard.writeText(dp.username ? `${window.location.origin}/${dp.username}` : window.location.href); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+
+    const addLink = () => {
+        if (!newLinkTitle || !newLinkUrl) return;
+        const newLink: CustomLink = { id: Date.now().toString(), title: newLinkTitle, url: newLinkUrl.startsWith('http') ? newLinkUrl : `https://${newLinkUrl}`, emoji: newLinkEmoji };
+        const updated = [...customLinks, newLink];
+        setCustomLinks(updated);
+        saveCustomLinks(profileId, updated);
+        setNewLinkTitle(''); setNewLinkUrl(''); setNewLinkEmoji('🔗'); setShowAddLink(false);
+    };
+
+    const removeLink = (id: string) => {
+        const updated = customLinks.filter(l => l.id !== id);
+        setCustomLinks(updated);
+        saveCustomLinks(profileId, updated);
+    };
 
     const discord = dp.linkedAccounts.find(a => a.service === 'discord');
     const farcaster = dp.linkedAccounts.find(a => a.service === 'farcaster');
-    const telegram = dp.linkedAccounts.find(a => a.service === 'telegram');
     const canEdit = authenticated && isOwner;
 
     return (
@@ -181,7 +249,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                 {canEdit && (
                     <button onClick={() => setShowSettings(!showSettings)}
                         className={cn("absolute top-5 right-5 z-10 w-10 h-10 rounded-2xl backdrop-blur-xl flex items-center justify-center transition-all",
-                            showSettings ? "bg-blue-500 text-white shadow-lg shadow-blue-500/30" : "bg-white/50 dark:bg-white/10 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/20")}>
+                            showSettings ? "bg-blue-500 text-white shadow-lg shadow-blue-500/30" : "bg-white/50 dark:bg-white/10 text-gray-500 hover:text-gray-900 dark:hover:text-white")}>
                         <Settings size={18} />
                     </button>
                 )}
@@ -199,11 +267,11 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         )}
                     </div>
 
-                    {/* Name */}
-                    <h2 className="text-[26px] font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 dark:from-white dark:via-gray-200 dark:to-white bg-clip-text text-transparent tracking-tight">
+                    {/* Name & Username */}
+                    <h2 className="text-[26px] font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 dark:from-white dark:via-gray-200 dark:to-white bg-clip-text text-transparent">
                         {dp.displayName || dp.username || 'Guest'}
                     </h2>
-                    {dp.username && <p className="text-[15px] text-gray-500 dark:text-gray-400 mt-1 mb-6">@{dp.username}</p>}
+                    {dp.username && <p className="text-[15px] text-gray-500 mt-1 mb-6">@{dp.username}</p>}
 
                     {/* Stats */}
                     <div className="flex gap-12 mb-8">
@@ -217,42 +285,63 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                         </div>
                     </div>
 
-                    {/* Social Icons - Glass buttons */}
-                    <div className="flex gap-3 mb-8">
+                    {/* Social Icons */}
+                    <div className="flex gap-3 mb-6">
                         {settings.showX && dp.username && (
                             <a href={`https://x.com/${dp.username}`} target="_blank" rel="noopener noreferrer"
-                                className="w-12 h-12 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-xl flex items-center justify-center text-gray-700 dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-lg shadow-black/5">
+                                className="w-12 h-12 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-xl flex items-center justify-center text-gray-700 dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-lg">
                                 <XIcon size={18} />
                             </a>
                         )}
                         {settings.showDiscord && discord?.username && (
                             <a href={`https://discord.com/users/${discord.username}`} target="_blank" rel="noopener noreferrer"
-                                className="w-12 h-12 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-xl flex items-center justify-center text-[#5865F2] hover:bg-[#5865F2] hover:text-white transition-all shadow-lg shadow-black/5">
+                                className="w-12 h-12 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-xl flex items-center justify-center text-[#5865F2] hover:bg-[#5865F2] hover:text-white transition-all shadow-lg">
                                 <DiscordIcon />
                             </a>
                         )}
                         {settings.showFarcaster && farcaster?.username && (
                             <a href={`https://warpcast.com/${farcaster.username}`} target="_blank" rel="noopener noreferrer"
-                                className="w-12 h-12 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-xl flex items-center justify-center text-[#8B5CF6] hover:bg-[#8B5CF6] hover:text-white transition-all shadow-lg shadow-black/5">
+                                className="w-12 h-12 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-xl flex items-center justify-center overflow-hidden hover:scale-105 transition-all shadow-lg">
                                 <FarcasterIcon />
                             </a>
                         )}
                         {settings.showTelegram && telegram?.username && (
-                            <span className="w-12 h-12 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-xl flex items-center justify-center text-[#0088CC] cursor-default shadow-lg shadow-black/5" title="Telegram connected (ID only)">
-                                <TelegramIcon />
-                            </span>
+                            telegramUsername ? (
+                                <a href={`https://t.me/${telegramUsername}`} target="_blank" rel="noopener noreferrer"
+                                    className="w-12 h-12 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-xl flex items-center justify-center text-[#0088CC] hover:bg-[#0088CC] hover:text-white transition-all shadow-lg">
+                                    <TelegramIcon />
+                                </a>
+                            ) : (
+                                <span className="w-12 h-12 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-xl flex items-center justify-center text-[#0088CC] opacity-50 shadow-lg" title="Telegram connected">
+                                    <TelegramIcon />
+                                </span>
+                            )
                         )}
                         {settings.showDeBank && dp.primaryAddress && (
                             <a href={`https://debank.com/profile/${dp.primaryAddress}`} target="_blank" rel="noopener noreferrer"
-                                className="w-12 h-12 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-xl flex items-center justify-center text-[#FE815F] hover:bg-[#FE815F] hover:text-white transition-all shadow-lg shadow-black/5">
+                                className="w-12 h-12 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-xl flex items-center justify-center overflow-hidden hover:scale-105 transition-all shadow-lg">
                                 <DeBankIcon />
                             </a>
                         )}
                     </div>
 
-                    {/* Copy Button - Glass style */}
+                    {/* Custom Links */}
+                    {customLinks.length > 0 && (
+                        <div className="w-full space-y-2 mb-6">
+                            {customLinks.map(link => (
+                                <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center gap-3 w-full px-5 py-3.5 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-xl hover:bg-white dark:hover:bg-white/20 transition-all shadow-md group">
+                                    <span className="text-xl">{link.emoji}</span>
+                                    <span className="flex-1 text-[15px] font-medium text-gray-800 dark:text-white">{link.title}</span>
+                                    <ExternalLink size={14} className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-white" />
+                                </a>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Copy Button */}
                     <button onClick={copy}
-                        className={cn("w-full h-14 rounded-2xl font-semibold text-[15px] transition-all flex items-center justify-center gap-2.5 backdrop-blur-xl",
+                        className={cn("w-full h-14 rounded-2xl font-semibold text-[15px] transition-all flex items-center justify-center gap-2.5",
                             copied ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
                                 : "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 active:scale-[0.98]")}>
                         {copied ? <><Check size={18} /> Copied!</> : <><Copy size={18} /> Copy Profile Link</>}
@@ -261,7 +350,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                     {/* Ethos Link */}
                     {dp.username && (
                         <a href={`https://app.ethos.network/profile/x/${dp.username}`} target="_blank" rel="noopener noreferrer"
-                            className="mt-5 text-[13px] text-blue-500 hover:text-blue-600 flex items-center gap-1.5 font-medium transition-colors">
+                            className="mt-5 text-[13px] text-blue-500 hover:text-blue-600 flex items-center gap-1.5 font-medium">
                             View on Ethos <ExternalLink size={13} />
                         </a>
                     )}
@@ -269,16 +358,60 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
 
                 {/* Settings Panel */}
                 {showSettings && canEdit && (
-                    <div className="border-t border-white/30 dark:border-white/10 p-6 bg-white/50 dark:bg-white/5 backdrop-blur-xl">
-                        <p className="text-[13px] font-semibold text-gray-500 mb-4 uppercase tracking-wider">Display Settings</p>
-                        <div className="grid grid-cols-2 gap-2">
-                            {([['showX', 'X', XIcon, '#000'], ['showDiscord', 'Discord', DiscordIcon, '#5865F2'], ['showFarcaster', 'Farcaster', FarcasterIcon, '#8B5CF6'], ['showTelegram', 'Telegram', TelegramIcon, '#0088CC'], ['showDeBank', 'DeBank', DeBankIcon, '#FE815F']] as const).map(([key, label, Icon, color]) => (
-                                <label key={key} className="flex items-center gap-2.5 p-3 rounded-xl bg-white/70 dark:bg-white/10 backdrop-blur-xl cursor-pointer hover:bg-white dark:hover:bg-white/20 transition-all text-[13px] border border-white/50 dark:border-white/10">
-                                    <input type="checkbox" checked={settings[key]} onChange={e => update({ ...settings, [key]: e.target.checked })} className="rounded border-gray-300 text-blue-500 focus:ring-blue-500 w-4 h-4" />
-                                    <span style={{ color }}><Icon /></span>
-                                    <span className="text-gray-700 dark:text-white font-medium">{label}</span>
-                                </label>
-                            ))}
+                    <div className="border-t border-white/30 dark:border-white/10 p-6 bg-white/50 dark:bg-white/5 backdrop-blur-xl space-y-6">
+
+                        {/* Social Toggles */}
+                        <div>
+                            <p className="text-[13px] font-semibold text-gray-500 mb-3 uppercase tracking-wider">Show/Hide Socials</p>
+                            <div className="grid grid-cols-2 gap-2">
+                                {([['showX', 'X', XIcon], ['showDiscord', 'Discord', DiscordIcon], ['showFarcaster', 'Farcaster', FarcasterIcon], ['showTelegram', 'Telegram', TelegramIcon], ['showDeBank', 'DeBank', DeBankIcon]] as const).map(([key, label, Icon]) => (
+                                    <label key={key} className="flex items-center gap-2.5 p-3 rounded-xl bg-white/70 dark:bg-white/10 cursor-pointer hover:bg-white dark:hover:bg-white/20 transition-all text-[13px]">
+                                        <input type="checkbox" checked={settings[key]} onChange={e => update({ ...settings, [key]: e.target.checked })} className="rounded border-gray-300 text-blue-500 w-4 h-4" />
+                                        <Icon />
+                                        <span className="text-gray-700 dark:text-white font-medium">{label}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Custom Links */}
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <p className="text-[13px] font-semibold text-gray-500 uppercase tracking-wider">Custom Links</p>
+                                <button onClick={() => setShowAddLink(!showAddLink)} className="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center gap-1">
+                                    <Plus size={14} /> Add
+                                </button>
+                            </div>
+
+                            {showAddLink && (
+                                <div className="space-y-2 mb-4 p-4 rounded-xl bg-white/70 dark:bg-white/10">
+                                    <div className="flex gap-2">
+                                        <input type="text" value={newLinkEmoji} onChange={e => setNewLinkEmoji(e.target.value)} placeholder="🔗" maxLength={2}
+                                            className="w-12 h-10 text-center rounded-lg bg-white dark:bg-white/20 border border-gray-200 dark:border-white/10 text-lg" />
+                                        <input type="text" value={newLinkTitle} onChange={e => setNewLinkTitle(e.target.value)} placeholder="Title"
+                                            className="flex-1 h-10 px-3 rounded-lg bg-white dark:bg-white/20 border border-gray-200 dark:border-white/10 text-sm" />
+                                    </div>
+                                    <input type="text" value={newLinkUrl} onChange={e => setNewLinkUrl(e.target.value)} placeholder="https://..."
+                                        className="w-full h-10 px-3 rounded-lg bg-white dark:bg-white/20 border border-gray-200 dark:border-white/10 text-sm" />
+                                    <button onClick={addLink} className="w-full h-10 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600">
+                                        Add Link
+                                    </button>
+                                </div>
+                            )}
+
+                            {customLinks.length > 0 && (
+                                <div className="space-y-2">
+                                    {customLinks.map(link => (
+                                        <div key={link.id} className="flex items-center gap-2 p-3 rounded-xl bg-white/70 dark:bg-white/10">
+                                            <span>{link.emoji}</span>
+                                            <span className="flex-1 text-sm text-gray-700 dark:text-white truncate">{link.title}</span>
+                                            <button onClick={() => removeLink(link.id)} className="text-red-500 hover:text-red-600 p-1">
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -289,7 +422,7 @@ export function ProfileCard({ initialProfile }: ProfileCardProps) {
                 <div className="flex items-center gap-2">
                     <span className="text-[12px] text-gray-400">Created by 0xarshia.eth</span>
                     <a href="https://x.com/0xarshia" target="_blank" rel="noopener noreferrer"
-                        className="w-5 h-5 rounded-lg bg-white/50 dark:bg-white/10 backdrop-blur-xl flex items-center justify-center text-gray-600 dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all">
+                        className="w-5 h-5 rounded-lg bg-white/50 dark:bg-white/10 flex items-center justify-center text-gray-600 dark:text-white hover:bg-black hover:text-white transition-all">
                         <XIcon size={9} />
                     </a>
                 </div>
